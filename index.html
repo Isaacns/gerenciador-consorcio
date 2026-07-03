@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerenciador de Consórcio · Vizio Consórcio</title>
+<meta name="theme-color" content="#2563EB">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Consórcio">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Raleway:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#2563EB;--blue-l:#3C94FC;--blue-d:#1D4ED8;
+  --bg:#0B0E16;--bg2:#0E121C;
+  --surface:#141A26;--surface2:#1A2030;--border:#27304A;--border2:#1E2638;
+  --text:#E6EAF2;--head:#FFFFFF;--muted:#9AA6BE;--muted2:#7C879E;
+  --soft:rgba(37,99,235,.16);
+  --ok:#34D77F;--ok-bg:rgba(22,163,74,.16);--ok-bd:#1F7A48;
+  --warn:#F0A33C;--warn-bg:rgba(217,119,6,.16);--warn-bd:#9A6A1B;
+  --vio:#A78BFA;--vio-bg:rgba(124,58,237,.18);--vio-bd:#5B3CA6;
+  --font:'Inter',system-ui,sans-serif;--font-display:'Raleway','Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5}
+h1,h2,h3,.brand .wm,.home-title{font-family:var(--font-display);letter-spacing:-.01em}
+a{color:var(--blue-l);text-decoration:none}
+.hidden{display:none!important}
+.num{font-variant-numeric:tabular-nums}
+.app{display:flex;min-height:100vh}
+
+/* selo + logo pulsante */
+@keyframes vzpulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(37,99,235,0))}50%{transform:scale(1.07);filter:drop-shadow(0 0 11px rgba(37,99,235,.55))}}
+.brand img.sym,#login .logo img{animation:vzpulse 2.8s ease-in-out infinite;transform-origin:center;will-change:transform,filter}
+.badge-cs{font-family:var(--font-display);font-weight:700;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--blue);padding:2px 7px;border-radius:5px;vertical-align:middle}
+
+/* Sidebar */
+aside{width:236px;flex:0 0 236px;background:var(--bg2);border-right:1px solid var(--border2);padding:22px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:9px;padding:4px 6px 18px;border-bottom:1px solid var(--border2);margin-bottom:14px}
+.brand img.sym{height:28px}
+.brand .wm{font-weight:800;letter-spacing:.18em;font-size:1rem;color:#fff}
+.brand small{display:block;color:var(--muted2);font-size:.62rem;letter-spacing:.06em;margin-top:2px}
+.prod{font-size:.78rem;color:var(--muted);padding:0 6px 16px}.prod b{color:#D7DEEC;font-weight:700}
+nav.menu{display:flex;flex-direction:column;gap:3px}
+nav.menu button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:transparent;border:0;color:var(--muted);font:inherit;font-size:.92rem;font-weight:600;padding:11px 12px;border-radius:10px;cursor:pointer;transition:.15s}
+nav.menu button .ico{width:18px;height:18px;flex:0 0 18px;opacity:.85}
+nav.menu button:hover{background:var(--surface);color:var(--text)}
+nav.menu button.active{background:var(--soft);color:#fff}
+nav.menu button.active .ico{stroke:var(--blue-l)}
+.side-foot{margin-top:auto;padding:14px 6px 0;border-top:1px solid var(--border2);font-size:.74rem;color:var(--muted2)}
+.side-foot .who{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#2563EB,#7C3AED);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.78rem}
+.who b{color:#D7DEEC;font-size:.82rem;display:block}
+.logout{margin-top:8px;background:none;border:0;color:var(--muted2);font:inherit;font-size:.76rem;cursor:pointer;padding:2px}.logout:hover{color:var(--text)}
+
+/* Main */
+main{flex:1;min-width:0;padding:26px 32px 60px;max-width:1180px}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.topbar h1{font-size:1.5rem;font-weight:800;color:#fff}
+.topbar p{color:var(--muted);font-size:.92rem;margin-top:3px}
+.btn{display:inline-flex;align-items:center;gap:7px;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:10px 17px;font:inherit;font-weight:700;font-size:.9rem;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--blue-d)}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn.ghost:hover{border-color:var(--blue-l);color:#fff}
+.btn.sm{padding:7px 12px;font-size:.82rem}
+.view{display:none;animation:fade .25s ease}.view.show{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 17px}
+.kpi .lab{font-size:.74rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.kpi .val{font-size:1.5rem;font-weight:800;color:#fff;margin-top:9px}
+.kpi .sub{font-size:.78rem;color:var(--muted2);margin-top:3px}
+.kpi.accent{background:linear-gradient(150% 130% at 90% 0%,#16224A 0%,#141A26 55%);border-color:#26407F}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:18px}
+.card h2{font-size:1.02rem;font-weight:800;color:#fff;margin-bottom:3px}
+.card .csub{font-size:.82rem;color:var(--muted);margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted2);font-weight:700;padding:9px 10px;border-bottom:1px solid var(--border)}
+td{padding:11px 10px;border-bottom:1px solid var(--border2);color:var(--text)}
+tr:last-child td{border-bottom:0}
+tbody tr.clk{cursor:pointer;transition:.12s}tbody tr.clk:hover{background:var(--surface2)}
+.cliente{display:flex;align-items:center;gap:10px}
+.cdot{width:30px;height:30px;border-radius:9px;background:var(--soft);display:flex;align-items:center;justify-content:center;color:var(--blue-l);font-weight:800;font-size:.78rem;flex:0 0 30px}
+.cliente b{color:#fff;font-weight:700;font-size:.9rem;display:block}.cliente span{color:var(--muted2);font-size:.76rem}
+.bar{height:7px;background:var(--border);border-radius:4px;overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#2563EB,#3C94FC);border-radius:4px}
+.badge{display:inline-block;font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.b-and{background:var(--soft);color:var(--blue-l)}
+.b-cont{background:var(--ok-bg);color:#5BE49B;border:1px solid var(--ok-bd)}
+.b-quit{background:rgba(124,58,237,.16);color:#C9B8FB;border:1px solid var(--vio-bd)}
+.b-pago{background:var(--ok-bg);color:#5BE49B}.b-aberto{background:rgba(240,163,60,.14);color:#F0B968}
+.act{border:0;background:none;padding:5px 7px;border-radius:6px;cursor:pointer;color:var(--muted);font-size:.95rem}.act:hover{background:var(--surface2);color:#fff}
+.grid2{display:grid;grid-template-columns:1.55fr 1fr;gap:18px;align-items:start}
+
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:.86rem;font-weight:600;background:0;border:0;cursor:pointer;margin-bottom:14px}.back:hover{color:#fff}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 4px}
+.meta div{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 13px}
+.meta .l{font-size:.68rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+.meta .v{font-size:.98rem;color:#fff;font-weight:700;margin-top:4px}
+
+/* simulador */
+.sim-wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px;align-items:start}
+.field{margin-bottom:15px}
+.field label{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:6px}
+.field select,.field input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:#fff;font:inherit;font-size:.92rem}
+.field input:focus,.field select:focus{outline:0;border-color:var(--blue-l)}
+.seg{display:flex;gap:8px}.seg label{flex:1;cursor:pointer;border:1px solid var(--border);border-radius:10px;padding:11px;text-align:center;font-size:.86rem;font-weight:600;color:var(--muted)}
+.seg input{display:none}.seg label:has(input:checked){border-color:var(--blue);background:var(--soft);color:#fff}
+.res{background:linear-gradient(150% 130% at 85% 0%,#16224A 0%,#141A26 60%);border:1px solid #26407F;border-radius:14px;padding:20px}
+.res h3{font-size:.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:14px}
+.res-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border2)}.res-row:last-child{border-bottom:0}
+.res-row .k{color:var(--muted);font-size:.9rem}.res-row .old{color:var(--muted2);font-size:.92rem;text-decoration:line-through;margin-right:8px}
+.res-row .new{color:#fff;font-size:1.1rem;font-weight:800}.res-row.big .new{color:#5BE49B;font-size:1.3rem}
+.note{font-size:.78rem;color:var(--muted2);margin-top:14px;line-height:1.5}
+.foot{margin-top:30px;padding-top:16px;border-top:1px solid var(--border2);color:var(--muted2);font-size:.78rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+/* modal */
+.ovl{position:fixed;inset:0;background:rgba(6,9,15,.66);display:flex;align-items:center;justify-content:center;z-index:400;padding:20px}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow:auto}
+.modal h3{padding:18px 22px;border-bottom:1px solid var(--border2);font-size:1.05rem;color:#fff}
+.modal .body{padding:18px 22px}.modal .foot2{padding:14px 22px;border-top:1px solid var(--border2);display:flex;gap:10px;justify-content:flex-end}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#10141F;color:#fff;padding:12px 20px;border-radius:10px;font-size:.86rem;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.toast.warn{background:#9A5B0E}.toast.danger{background:#A32D2D}.toast.ok{background:#15803D}
+
+/* Login */
+#login{position:fixed;inset:0;z-index:1000;background:radial-gradient(120% 90% at 85% -10%,#16224A 0%,rgba(11,14,22,0) 55%),radial-gradient(90% 80% at 0% 110%,#1B1740 0%,rgba(11,14,22,0) 50%),var(--bg);display:flex;align-items:center;justify-content:center;padding:24px}
+#login .box{width:100%;max-width:404px;animation:fade .35s ease}
+#login .head{text-align:center;margin-bottom:22px}
+#login .logo{display:inline-flex;align-items:center;gap:10px;margin-bottom:16px}
+#login .logo img{height:36px}
+#login .logo .wm{font-weight:800;letter-spacing:.2em;font-size:1.15rem;color:#fff}
+#login .logo small{display:block;color:var(--muted2);font-size:.6rem;letter-spacing:.14em;margin-top:3px}
+#login h1{font-size:1.35rem;font-weight:800;color:#fff}#login .head p{color:var(--muted);font-size:.9rem;margin-top:6px}
+#login .card-l{background:rgba(20,26,38,.86);border:1px solid var(--border);border-radius:16px;padding:24px;backdrop-filter:blur(8px)}
+#login .field{margin-bottom:13px}#login label{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:6px}
+#login input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 13px;color:#fff;font:inherit;font-size:.94rem}
+#login input:focus{outline:0;border-color:var(--blue-l);box-shadow:0 0 0 3px var(--soft)}
+#login .enter{width:100%;background:var(--blue);color:#fff;border:0;border-radius:11px;padding:13px;font:inherit;font-weight:700;font-size:.96rem;cursor:pointer;margin-top:4px}#login .enter:hover{background:var(--blue-d)}
+#login .sep{display:flex;align-items:center;gap:12px;color:var(--muted2);font-size:.76rem;margin:16px 0}#login .sep::before,#login .sep::after{content:"";flex:1;height:1px;background:var(--border2)}
+#login .create{width:100%;background:transparent;border:1px solid var(--border);color:var(--text);border-radius:11px;padding:12px;font:inherit;font-weight:600;font-size:.92rem;cursor:pointer}#login .create:hover{border-color:var(--blue-l);color:#fff}
+#login .err{color:#FCA5A5;font-size:.82rem;min-height:18px;margin:2px 0 6px}
+#login .foot-l{text-align:center;font-size:.74rem;color:var(--muted2);margin-top:20px}
+#login .link{background:none;border:0;color:var(--blue-l);font:inherit;font-size:.82rem;font-weight:700;cursor:pointer}
+
+@media(max-width:900px){aside{display:none}main{padding:18px 16px 50px}.kpis{grid-template-columns:repeat(2,1fr)}.grid2,.sim-wrap,.fgrid{grid-template-columns:1fr}.meta{grid-template-columns:repeat(2,1fr)}.hide-sm{display:none}}
+@media print{aside,.topbar .btn,.act,.foot,.back{display:none!important}main{max-width:none;padding:0}body{background:#fff;color:#000}.card{border:1px solid #ccc}}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login">
+  <div class="box">
+    <div class="head">
+      <div class="logo"><img src="vizio-symbol-light.png" alt="VIZIO"><div><span class="wm">VIZIO</span><small>CONSÓRCIO</small></div></div>
+      <h1>Gerenciador de Consórcio</h1>
+      <p>Cotas, parcelas, reajustes e contemplações — num painel só.</p>
+    </div>
+    <div class="card-l">
+      <div id="viewLogin">
+        <form onsubmit="return VZC.login(event)">
+          <div class="field"><label>E-mail</label><input type="email" id="lgEmail" placeholder="voce@empresa.com.br" autocomplete="username"></div>
+          <div class="field"><label>Senha</label><input type="password" id="lgPass" placeholder="••••••••" autocomplete="current-password"></div>
+          <div class="err" id="lgErr"></div>
+          <button class="enter" type="submit">Entrar</button>
+        </form>
+        <div style="text-align:right;margin-top:8px"><button class="link" onclick="VZC.forgot()">Esqueci minha senha</button></div>
+        <div class="sep">ou</div>
+        <button class="create" onclick="VZC.showSignup(true)">Criar conta</button>
+      </div>
+      <form id="viewSignup" class="hidden" onsubmit="return VZC.signup(event)">
+        <div class="field"><label>Seu nome</label><input id="suNome" autocomplete="name"></div>
+        <div class="field"><label>Perfil</label><select id="suPapel"><option value="pessoal">Pessoal (minhas cotas)</option><option value="profissional">Profissional (carteira de clientes)</option></select></div>
+        <div class="field"><label>E-mail</label><input type="email" id="suEmail" autocomplete="email"></div>
+        <div class="field"><label>Senha (mín. 6)</label><input type="password" id="suPass" autocomplete="new-password"></div>
+        <label style="display:flex;gap:8px;align-items:flex-start;font-size:.78rem;color:var(--muted);margin:2px 0 10px"><input type="checkbox" id="suConsent" style="width:auto;margin-top:3px"><span>Li e aceito os <a href="legal.html" target="_blank">Termos e a Política de Privacidade</a>.</span></label>
+        <div class="err" id="suErr"></div>
+        <button class="enter" type="submit">Criar minha conta</button>
+        <div style="text-align:center;margin-top:10px"><button type="button" class="link" onclick="VZC.showSignup(false)">Já tenho conta — entrar</button></div>
+      </form>
+    </div>
+    <div class="foot-l">Gerenciador de Consórcio <b style="color:var(--muted)">by VIZIO</b> · um produto INPERSON</div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div class="app hidden" id="app">
+  <aside>
+    <div class="brand"><img class="sym" src="vizio-symbol-light.png" alt="VIZIO"><div><span class="wm">VIZIO</span><small>CONSÓRCIO</small></div></div>
+    <div class="prod"><b>Gerenciador de Consórcio</b><br>um produto INPERSON</div>
+    <nav class="menu" id="menu"></nav>
+    <div class="side-foot">
+      <div class="who"><div class="avatar" id="uAv">—</div><div><b id="uName">—</b><span id="uRole">—</span></div></div>
+      <span id="planLbl">Plano —</span>
+      <button class="logout" onclick="VZC.logout()">Sair</button>
+    </div>
+  </aside>
+  <main>
+    <section class="view show" id="v-carteira"></section>
+    <section class="view" id="v-cotas"></section>
+    <section class="view" id="v-detalhe"></section>
+    <section class="view" id="v-sim"></section>
+    <section class="view" id="v-relatorios"></section>
+    <div class="foot">
+      <span>Gerenciador de Consórcio <b style="color:var(--muted)">by VIZIO</b> · Sua planilha virou software.</span>
+      <span>um produto INPERSON</span>
+    </div>
+  </main>
+</div>
+
+<script src="dados.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="consorcio-calc.js"></script>
+<script src="consorcio-crud.js"></script>
+<script>
+/* ==========================================================================
+ * VZC — app do Gerenciador de Consórcio (Supabase + motor testado)
+ * ======================================================================== */
+window.VZC = (function(){
+  "use strict";
+  var CFG=(typeof DADOS!=="undefined"&&DADOS._cfg)?DADOS._cfg:{};
+  var Calc=window.ConsorcioCalc, CRUD=window.ConsorcioCRUD;
+  var SB=null, UID=null, booted=false;
+  var STATE={perfil:null, cotas:[], parcelas:{}, eventos:{}};
+  var MENU=[
+    {id:"carteira",nome:"Carteira",prof:true,ico:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'},
+    {id:"cotas",nome:"Minhas cotas",ico:'<path d="M4 6h16M4 12h16M4 18h16"/>'},
+    {id:"sim",nome:"Simulador de lance",ico:'<circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/>'},
+    {id:"relatorios",nome:"Relatórios",ico:'<path d="M6 3h9l5 5v13H6z"/><path d="M9 13h6M9 17h6"/>'}
+  ];
+
+  /* ---------- helpers ---------- */
+  function BRL(n){return "R$ "+(Number(n)||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+  function iniciais(n){var p=String(n||"?").trim().split(/\s+/);return ((p[0][0]||"?")+(p[1]?p[1][0]:"")).toUpperCase();}
+  function isProf(){return STATE.perfil&&(STATE.perfil.papel==="profissional"||STATE.perfil.papel==="admin");}
+  function dBR(s){if(!s)return "—";var p=String(s).split("-");return p.length===3?(p[2].slice(0,2)+"/"+p[1]+"/"+p[0]):s;}
+  function statusBadge(c){var s=c.status||"andamento";if(s==="contemplada"||c.contemplada)return '<span class="badge b-cont">Contemplada</span>';if(s==="quitada")return '<span class="badge b-quit">Quitada</span>';if(s==="cancelada")return '<span class="badge b-aberto">Cancelada</span>';return '<span class="badge b-and">Em andamento</span>';}
+  function toast(m,k){var t=document.createElement("div");t.className="toast "+(k||"");t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.style.opacity="0";t.style.transition="opacity .4s";},2400);setTimeout(function(){t.remove();},2900);}
+  function parcelasDe(id){return STATE.parcelas[id]||[];}
+  function num(id){var el=document.getElementById(id);return el?el.value:"";}
+
+  /* ---------- navegação ---------- */
+  function go(v){
+    document.querySelectorAll(".view").forEach(function(e){e.classList.remove("show");});
+    var el=document.getElementById("v-"+v); if(el)el.classList.add("show");
+    document.querySelectorAll("#menu button").forEach(function(b){b.classList.toggle("active",b.dataset.go===v);});
+    window.scrollTo(0,0);
+    ({carteira:renderCarteira,cotas:renderCotas,sim:renderSim,relatorios:renderRelatorios}[v]||function(){})();
+  }
+  function buildMenu(){
+    document.getElementById("menu").innerHTML=MENU.filter(function(m){return !m.prof||isProf();}).map(function(m){
+      return '<button data-go="'+m.id+'" onclick="VZC.go(\''+m.id+'\')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#9AA6BE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+m.ico+'</svg>'+m.nome+'</button>';
+    }).join("");
+  }
+
+  /* ---------- CARTEIRA ---------- */
+  function renderCarteira(){
+    var v=document.getElementById("v-carteira");
+    var k=CRUD.resumoCarteira(STATE.cotas, STATE.parcelas);
+    var titulo=isProf()?"Carteira":"Meu consórcio";
+    var subt=isProf()?"Visão geral das cotas dos seus clientes.":"Visão geral das suas cotas.";
+    var alertas=buildAlertas();
+    v.innerHTML=
+      '<div class="topbar"><div><h1>'+titulo+'</h1><p>'+subt+'</p></div><button class="btn" onclick="VZC.novaCota()">＋ Nova cota</button></div>'+
+      '<div class="kpis">'+
+        kpi("Cotas ativas",k.cotasAtivas,"de "+k.nCotas+" no total","")+
+        kpi("Contempladas",k.contempladas,k.quitadas+" quitada(s)","")+
+        kpi("Parcelas do mês",BRL(k.parcelaMes),k.parcelasAVencer+" a vencer","")+
+        kpi("Já pago",BRL(k.jaPago),"acumulado","accent")+
+      '</div>'+
+      '<div class="grid2"><div class="card"><h2>Cotas</h2><div class="csub">Clique em uma cota para ver o cronograma.</div>'+
+        '<table><thead><tr>'+(isProf()?'<th>Cliente</th>':'<th>Cota</th>')+'<th class="hide-sm">Administradora</th><th>Parcela</th><th>Andamento</th><th>Status</th></tr></thead><tbody>'+cotasRows(true)+'</tbody></table></div>'+
+        '<div><div class="card" style="background:linear-gradient(150% 130% at 85% 0%,#16224A 0%,#141A26 60%);border-color:#26407F"><h2>Sob gestão</h2><div class="csub">Total em cartas acompanhadas.</div><div style="font-size:1.8rem;font-weight:800;color:#fff" class="num">'+BRL(k.totalCartas)+'</div><div style="color:var(--muted);font-size:.82rem;margin-top:4px">'+k.nCotas+' cota(s) · '+k.nAdministradoras+' administradora(s)</div></div>'+
+        '<div class="card"><h2>Alertas</h2><div class="csub">O que precisa de atenção.</div>'+(alertas||'<div style="color:var(--muted2);font-size:.85rem">Sem alertas por enquanto.</div>')+'</div></div>'+
+      '</div>';
+  }
+  function kpi(l,val,s,cls){return '<div class="kpi '+cls+'"><div class="lab">'+l+'</div><div class="val num">'+val+'</div><div class="sub">'+s+'</div></div>';}
+  function cotasRows(mini){
+    if(!STATE.cotas.length)return '<tr><td colspan="5" style="color:var(--muted2)">Nenhuma cota ainda. Clique em <b>Nova cota</b> para começar.</td></tr>';
+    return STATE.cotas.map(function(c){
+      var r=CRUD.resumoCota(c, parcelasDe(c.id));
+      var nome=isProf()?(c.cliente_nome||"—"):((c.bem||"Cota")+" "+(c.cota||""));
+      var cli='<div class="cliente"><div class="cdot">'+iniciais(nome)+'</div><div><b>'+esc(nome)+'</b><span>'+esc(c.grupo?("Grupo "+c.grupo+"·"+(c.cota||"")):(c.administradora||""))+'</span></div></div>';
+      return '<tr class="clk" onclick="VZC.abrir(\''+c.id+'\')"><td>'+cli+'</td><td class="hide-sm">'+esc(c.administradora||"")+'</td><td class="num">'+BRL(r.parcela)+'</td>'+
+        '<td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:'+r.pct+'%"></i></div><span class="num" style="font-size:.76rem;color:var(--muted)">'+r.pagas+'/'+r.prazo+'</span></div></td><td>'+statusBadge(c)+'</td></tr>';
+    }).join("");
+  }
+  function buildAlertas(){
+    var out="";
+    STATE.cotas.forEach(function(c){
+      var pars=parcelasDe(c.id);
+      var prox=pars.filter(function(p){return !p.quitado;}).sort(function(a,b){return a.numero-b.numero;})[0];
+      if(prox){out+='<div style="display:flex;gap:10px;padding:10px 11px;border-radius:10px;margin-bottom:8px;border:1px solid var(--border);border-left:3px solid var(--blue);background:var(--surface2)"><div><b style="color:#fff;font-size:.85rem">Parcela '+prox.numero+' a vencer</b><br><span style="color:var(--muted);font-size:.8rem">'+(isProf()?esc(c.cliente_nome||c.administradora):esc(c.administradora))+' · '+BRL(prox.valor_previsto)+' · '+dBR(prox.vencimento)+'</span></div></div>';}
+    });
+    return out;
+  }
+
+  /* ---------- COTAS ---------- */
+  function renderCotas(){
+    var v=document.getElementById("v-cotas");
+    v.innerHTML='<div class="topbar"><div><h1>Minhas cotas</h1><p>Todas as cotas acompanhadas.</p></div><button class="btn" onclick="VZC.novaCota()">＋ Nova cota</button></div>'+
+      '<div class="card"><table><thead><tr>'+(isProf()?'<th>Cliente</th>':'<th>Cota</th>')+'<th class="hide-sm">Bem / Carta</th><th>Grupo·Cota</th><th>Parcela</th><th>Andamento</th><th>Status</th><th></th></tr></thead><tbody>'+cotasRowsFull()+'</tbody></table></div>';
+  }
+  function cotasRowsFull(){
+    if(!STATE.cotas.length)return '<tr><td colspan="7" style="color:var(--muted2)">Nenhuma cota. Clique em <b>Nova cota</b>.</td></tr>';
+    return STATE.cotas.map(function(c){
+      var r=CRUD.resumoCota(c, parcelasDe(c.id));
+      var nome=isProf()?(c.cliente_nome||"—"):((c.bem||"Cota")+" "+(c.cota||""));
+      var cli='<div class="cliente"><div class="cdot">'+iniciais(nome)+'</div><div><b>'+esc(nome)+'</b><span>'+esc(c.administradora||"")+'</span></div></div>';
+      return '<tr class="clk" onclick="VZC.abrir(\''+c.id+'\')"><td>'+cli+'</td><td class="hide-sm">'+esc(c.bem||"")+' · '+BRL(c.valor_carta)+'</td><td class="num">'+esc((c.grupo||"—")+"·"+(c.cota||"—"))+'</td><td class="num">'+BRL(r.parcela)+'</td>'+
+        '<td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:'+r.pct+'%"></i></div><span class="num" style="font-size:.76rem;color:var(--muted)">'+r.pagas+'/'+r.prazo+'</span></div></td><td>'+statusBadge(c)+'</td>'+
+        '<td style="white-space:nowrap" onclick="event.stopPropagation()"><button class="act" title="Editar" onclick="VZC.editCota(\''+c.id+'\')">✎</button><button class="act" title="Excluir" onclick="VZC.delCota(\''+c.id+'\')">🗑</button></td></tr>';
+    }).join("");
+  }
+
+  /* ---------- DETALHE ---------- */
+  function abrir(id){
+    var c=STATE.cotas.find(function(x){return x.id===id;}); if(!c)return;
+    STATE._cur=id;
+    var r=CRUD.resumoCota(c, parcelasDe(id));
+    var v=document.getElementById("v-detalhe");
+    var nome=isProf()?(c.cliente_nome||"Cota"):((c.bem||"Cota")+" "+(c.cota||""));
+    v.innerHTML='<button class="back" onclick="VZC.go(\'cotas\')">← Voltar</button>'+
+      '<div class="topbar"><div><h1>'+esc(nome)+'</h1><p>'+esc((c.administradora||"")+" · "+(c.bem||"")+" · Grupo "+(c.grupo||"—")+" cota "+(c.cota||"—"))+'</p></div>'+statusBadge(c)+'</div>'+
+      '<div class="meta">'+
+        metad("Carta de crédito",BRL(c.valor_carta))+metad("Parcela atual",BRL(r.parcela))+
+        metad("Pagas / total",r.pagas+" / "+r.prazo+" ("+r.pct+"%)")+metad("Saldo a pagar",BRL(r.saldo))+
+        metad("Taxa de adm.",(c.taxa_adm_pct||0)+"%")+metad("Fundo de reserva",(c.fundo_reserva_pct||0)+"%")+
+        metad("Índice",c.indice_reajuste||"—")+metad("Adesão",dBR(c.data_adesao))+
+      '</div>'+
+      '<div class="card" style="margin-top:18px"><h2>Cronograma de parcelas</h2><div class="csub">Marque as pagas para abater do saldo.</div>'+
+        '<table><thead><tr><th>#</th><th>Vencimento</th><th>Previsto</th><th>Pago</th><th class="hide-sm">Reajuste</th><th>Status</th></tr></thead><tbody>'+cronogramaRows(c)+'</tbody></table></div>';
+  }
+  function metad(l,v){return '<div><div class="l">'+l+'</div><div class="v num">'+v+'</div></div>';}
+  function cronogramaRows(c){
+    var pars=parcelasDe(c.id).slice().sort(function(a,b){return a.numero-b.numero;});
+    if(!pars.length)return '<tr><td colspan="6" style="color:var(--muted2)">Sem cronograma gerado.</td></tr>';
+    return pars.map(function(p){
+      var reaj=(p.reajuste_aplicado&&Number(p.reajuste_aplicado)>0)?'<span class="badge b-aberto">+'+Number(p.reajuste_aplicado).toFixed(2).replace(".",",")+"% "+esc(c.indice_reajuste||"")+'</span>':'<span style="color:var(--muted2)">—</span>';
+      return '<tr><td class="num">'+p.numero+'</td><td>'+dBR(p.vencimento)+'</td><td class="num">'+BRL(p.valor_previsto)+'</td><td class="num">'+(p.quitado?BRL(p.valor_pago||p.valor_previsto):"—")+'</td>'+
+        '<td class="hide-sm">'+reaj+'</td><td><label style="cursor:pointer;display:inline-flex;align-items:center;gap:6px"><input type="checkbox" '+(p.quitado?"checked":"")+' onchange="VZC.togglePago(\''+p.id+'\',this.checked)"> '+(p.quitado?'<span class="badge b-pago">Pago</span>':'<span class="badge b-aberto">Em aberto</span>')+'</label></td></tr>';
+    }).join("");
+  }
+
+  /* ---------- SIMULADOR ---------- */
+  function renderSim(){
+    var v=document.getElementById("v-sim");
+    var opts=STATE.cotas.filter(function(c){return c.status!=="quitada";}).map(function(c){
+      var nome=isProf()?(c.cliente_nome||c.administradora):((c.bem||"Cota")+" "+(c.cota||""));
+      return '<option value="'+c.id+'">'+esc(nome+" — "+(c.administradora||"")+" ("+BRL(c.valor_carta)+")")+'</option>';
+    }).join("");
+    v.innerHTML='<div class="topbar"><div><h1>Simulador de lance</h1><p>Veja o impacto de um lance na contemplação.</p></div></div>'+
+      '<div class="card"><div class="sim-wrap"><div>'+
+        '<div class="field"><label>Cota</label><select id="simCota">'+(opts||'<option value="">Nenhuma cota ativa</option>')+'</select></div>'+
+        '<div class="field"><label>Valor do lance (R$)</label><input id="simLance" type="number" value="40000" min="0" step="1000"></div>'+
+        '<div class="field"><label>Otimizar</label><div class="seg"><label><input type="radio" name="simModo" value="prazo" checked><span>Reduzir prazo</span></label><label><input type="radio" name="simModo" value="parcela"><span>Reduzir parcela</span></label></div></div>'+
+        '<button class="btn" onclick="VZC.simular()">Simular impacto</button></div>'+
+        '<div class="res"><h3>Resultado</h3><div id="simOut"><div style="color:var(--muted2);font-size:.85rem">Selecione uma cota e clique em simular.</div></div>'+
+        '<div class="note">Consórcio não tem juros: o lance abate direto o saldo. Reduzir prazo mantém a parcela e antecipa o fim; reduzir parcela mantém o prazo e diminui o valor mensal.</div></div>'+
+      '</div></div>';
+  }
+  function simular(){
+    var id=num("simCota"); var c=STATE.cotas.find(function(x){return x.id===id;});
+    if(!c){toast("Selecione uma cota.","warn");return;}
+    var r=CRUD.resumoCota(c, parcelasDe(id));
+    var lance=Number(num("simLance"))||0;
+    var modoEl=document.querySelector('input[name=simModo]:checked'); var modo=modoEl?modoEl.value:"prazo";
+    var s=Calc.simularLance({parcela:r.parcela,prazo:r.prazo,pagas:r.pagas,lance:lance,modo:modo});
+    var out;
+    if(modo==="prazo"){
+      out=row("Saldo a pagar hoje",null,BRL(s.saldoAtual))+row("Lance aplicado",null,"− "+BRL(s.lanceAplicado))+
+        row("Parcela mensal",BRL(s.parcelaAntes),BRL(s.parcelaDepois)+" <span style='font-size:.7rem;color:var(--muted2)'>(mantém)</span>")+
+        rowBig("Parcelas restantes",s.restantesAntes+" meses",s.restantesDepois+" meses")+
+        row("Antecipação",null,"<span style='color:#5BE49B;font-weight:800'>"+s.parcelasReduzidas+" parcelas a menos</span>");
+    }else{
+      out=row("Saldo a pagar hoje",null,BRL(s.saldoAtual))+row("Lance aplicado",null,"− "+BRL(s.lanceAplicado))+
+        row("Parcelas restantes",s.restantesAntes+" meses",s.restantesDepois+" meses <span style='font-size:.7rem;color:var(--muted2)'>(mantém)</span>")+
+        rowBig("Nova parcela",BRL(s.parcelaAntes),BRL(s.parcelaDepois))+
+        row("Economia mensal",null,"<span style='color:#5BE49B;font-weight:800'>"+BRL(s.economiaMensal)+" por mês</span>");
+    }
+    document.getElementById("simOut").innerHTML=out;
+  }
+  function row(k,old,nv){return '<div class="res-row"><span class="k">'+k+'</span><span>'+(old?'<span class="old num">'+old+'</span>':'')+'<span class="new num">'+nv+'</span></span></div>';}
+  function rowBig(k,old,nv){return '<div class="res-row big"><span class="k">'+k+'</span><span>'+(old?'<span class="old num">'+old+'</span>':'')+'<span class="new num">'+nv+'</span></span></div>';}
+
+  /* ---------- RELATÓRIOS ---------- */
+  function renderRelatorios(){
+    var v=document.getElementById("v-relatorios");
+    var opts=STATE.cotas.map(function(c){var nome=isProf()?(c.cliente_nome||c.administradora):((c.bem||"Cota")+" "+(c.cota||""));return '<option value="'+c.id+'">'+esc(nome+" — "+(c.administradora||""))+'</option>';}).join("");
+    v.innerHTML='<div class="topbar"><div><h1>Relatórios</h1><p>Extrato por cota, pronto para PDF.</p></div></div>'+
+      '<div class="card"><h2>Gerar extrato</h2><div class="csub">Selecione a cota e gere um PDF (via impressão do navegador).</div>'+
+      '<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;max-width:560px"><div class="field" style="flex:1;margin:0"><label>Cota</label><select id="relCota">'+(opts||'<option value="">Nenhuma cota</option>')+'</select></div>'+
+      '<button class="btn" onclick="VZC.gerarPDF()">⬇ Gerar PDF</button></div></div>';
+  }
+  function gerarPDF(){var id=num("relCota");if(!id){toast("Nenhuma cota.","warn");return;}abrir(id);document.querySelectorAll(".view").forEach(function(e){e.classList.remove("show");});document.getElementById("v-detalhe").classList.add("show");toast("Abrindo impressão — escolha “Salvar como PDF”.","ok");setTimeout(function(){window.print();},400);}
+
+  /* ---------- CRUD cota (modal) ---------- */
+  function cotaForm(c){
+    c=c||{};
+    var f=function(id,lab,val,type,extra){type=type||"text";return '<div class="field"><label>'+lab+'</label><input id="'+id+'" type="'+type+'" value="'+esc(val==null?"":val)+'" '+(extra||"")+'></div>';};
+    var sel=function(id,lab,val,opts){return '<div class="field"><label>'+lab+'</label><select id="'+id+'">'+opts.map(function(o){return '<option'+(o===val?" selected":"")+'>'+o+'</option>';}).join("")+'</select></div>';};
+    return '<div class="body">'+
+      (isProf()?f("f_cliente","Cliente",c.cliente_nome):"")+
+      '<div class="fgrid">'+f("f_adm","Administradora *",c.administradora)+sel("f_bem","Bem",c.bem||"Imóvel",["Imóvel","Automóvel","Serviços","Outro"])+'</div>'+
+      '<div class="fgrid">'+f("f_grupo","Grupo",c.grupo)+f("f_cota","Cota",c.cota)+'</div>'+
+      '<div class="fgrid">'+f("f_carta","Carta de crédito (R$) *",c.valor_carta,"number",'step="0.01" min="0"')+f("f_prazo","Prazo (meses) *",c.prazo_meses,"number",'min="1"')+'</div>'+
+      '<div class="fgrid">'+f("f_taxa","Taxa adm. (%)",c.taxa_adm_pct,"number",'step="0.001"')+f("f_fr","Fundo reserva (%)",c.fundo_reserva_pct,"number",'step="0.001"')+'</div>'+
+      '<div class="fgrid">'+f("f_seguro","Seguro mensal (R$)",c.seguro_mensal,"number",'step="0.01"')+sel("f_indice","Índice",c.indice_reajuste||"INCC",["INCC","IPCA","IGP-M","OUTRO"])+'</div>'+
+      '<div class="fgrid">'+f("f_adesao","Adesão",c.data_adesao,"date")+f("f_pagas","Parcelas já pagas",c._pagas!=null?c._pagas:0,"number",'min="0"')+'</div>'+
+      '<div class="field"><label>Reajuste anual projetado (%) — opcional</label><input id="f_reaj" type="number" step="0.01" value="'+esc(c._reaj!=null?c._reaj:0)+'"></div>'+
+    '</div>';
+  }
+  function novaCota(){openCotaModal(null);}
+  function editCota(id){openCotaModal(STATE.cotas.find(function(x){return x.id===id;}));}
+  function openCotaModal(c){
+    var ovl=document.createElement("div");ovl.className="ovl";ovl.id="cotaOvl";
+    ovl.innerHTML='<div class="modal"><h3>'+(c?"Editar cota":"Nova cota")+'</h3>'+cotaForm(c)+
+      '<div class="foot2"><button class="btn ghost" onclick="VZC.closeModal()">Cancelar</button><button class="btn" onclick="VZC.saveCota('+(c?'\''+c.id+'\'':"null")+')">Salvar</button></div></div>';
+    ovl.addEventListener("click",function(e){if(e.target===ovl)closeModal();});
+    document.body.appendChild(ovl);
+  }
+  function closeModal(){var o=document.getElementById("cotaOvl");if(o)o.remove();}
+  function readCota(){
+    var g=function(id){return num(id);};
+    return {
+      cliente_nome:isProf()?(g("f_cliente")||null):null,
+      administradora:g("f_adm").trim(),
+      bem:g("f_bem"), grupo:g("f_grupo").trim()||null, cota:g("f_cota").trim()||null,
+      valor_carta:Number(g("f_carta"))||0, prazo_meses:parseInt(g("f_prazo"))||0,
+      taxa_adm_pct:Number(g("f_taxa"))||0, fundo_reserva_pct:Number(g("f_fr"))||0,
+      seguro_mensal:Number(g("f_seguro"))||0, indice_reajuste:g("f_indice"),
+      data_adesao:g("f_adesao")||null,
+      _pagas:parseInt(g("f_pagas"))||0, _reaj:Number(g("f_reaj"))||0
+    };
+  }
+  function saveCota(id){
+    var d=readCota();
+    if(!d.administradora){toast("Informe a administradora.","warn");return;}
+    if(!(d.valor_carta>0)){toast("Carta de crédito deve ser > 0.","warn");return;}
+    if(!(d.prazo_meses>0)){toast("Prazo deve ser > 0.","warn");return;}
+    var pagas=d._pagas, reaj=d._reaj; delete d._pagas; delete d._reaj;
+    try{ d.parcela_base=Calc.parcelaBase(d); }catch(e){ toast(e.message,"danger"); return; }
+    d.user_id=UID;
+    var status=(pagas>=d.prazo_meses)?"quitada":(d.contemplada?"contemplada":"andamento");
+    d.status=status;
+    if(id){
+      SB.from("cs_cotas").update(d).eq("id",id).then(function(r){
+        if(r.error){toast("Erro ao salvar: "+r.error.message,"danger");return;}
+        var idx=STATE.cotas.findIndex(function(x){return x.id===id;});
+        if(idx>=0)STATE.cotas[idx]=Object.assign(STATE.cotas[idx],d);
+        closeModal(); toast("Cota atualizada.","ok"); go("cotas");
+      });
+    }else{
+      SB.from("cs_cotas").insert(d).select().single().then(function(r){
+        if(r.error){toast("Erro ao criar: "+r.error.message,"danger");return;}
+        var cota=r.data; STATE.cotas.unshift(cota);
+        // gera cronograma e grava
+        var pars;
+        try{ pars=CRUD.gerarParcelas(cota,{pagas:pagas,reajusteAnualPct:reaj}); }catch(e){ pars=[]; }
+        var payload=pars.map(function(p){return {cota_id:cota.id,user_id:UID,numero:p.numero,vencimento:p.vencimento,valor_previsto:p.valor_previsto,valor_pago:p.valor_pago,reajuste_aplicado:p.reajuste_aplicado,quitado:p.quitado,status:p.status};});
+        closeModal();
+        if(!payload.length){toast("Cota criada.","ok");go("cotas");return;}
+        SB.from("cs_parcelas").insert(payload).select().then(function(rr){
+          STATE.parcelas[cota.id]=(rr.data&&!rr.error)?rr.data:pars;
+          toast("Cota criada com "+payload.length+" parcelas.","ok"); go("cotas");
+        });
+      });
+    }
+  }
+  function delCota(id){
+    if(!confirm("Excluir esta cota e todo o seu cronograma?"))return;
+    SB.from("cs_cotas").delete().eq("id",id).then(function(r){
+      if(r.error){toast("Erro: "+r.error.message,"danger");return;}
+      STATE.cotas=STATE.cotas.filter(function(x){return x.id!==id;}); delete STATE.parcelas[id];
+      toast("Cota excluída.","ok"); go("cotas");
+    });
+  }
+  function togglePago(pid,checked){
+    var cur=STATE._cur, pars=parcelasDe(cur); var p=pars.find(function(x){return x.id===pid;}); if(!p)return;
+    var upd={quitado:!!checked,status:checked?"pago":"aberto",valor_pago:checked?(p.valor_pago||p.valor_previsto):0};
+    SB.from("cs_parcelas").update(upd).eq("id",pid).then(function(r){
+      if(r.error){toast("Erro: "+r.error.message,"danger");return;}
+      Object.assign(p,upd);
+      // atualiza status da cota se quitou tudo
+      var c=STATE.cotas.find(function(x){return x.id===cur;});
+      var allPaid=pars.length&&pars.every(function(x){return x.quitado;});
+      if(c&&allPaid&&c.status!=="quitada"){SB.from("cs_cotas").update({status:"quitada"}).eq("id",c.id);c.status="quitada";}
+      abrir(cur);
+    });
+  }
+
+  /* ---------- auth + carga ---------- */
+  function loadAll(){
+    return Promise.all([
+      SB.from("cs_perfis").select("*").maybeSingle(),
+      SB.from("cs_cotas").select("*").order("created_at",{ascending:false}),
+      SB.from("cs_parcelas").select("*"),
+      SB.from("cs_eventos").select("*")
+    ]).then(function(res){
+      STATE.perfil=res[0].data||null;
+      STATE.cotas=res[1].data||[];
+      STATE.parcelas={}; (res[2].data||[]).forEach(function(p){(STATE.parcelas[p.cota_id]=STATE.parcelas[p.cota_id]||[]).push(p);});
+      STATE.eventos={}; (res[3].data||[]).forEach(function(e){(STATE.eventos[e.cota_id]=STATE.eventos[e.cota_id]||[]).push(e);});
+    });
+  }
+  function ensurePerfil(u){
+    if(STATE.perfil&&STATE.perfil.user_id)return Promise.resolve();
+    var md=(u&&u.user_metadata)||{};
+    var row={user_id:u.id,nome:md.nome||u.email,papel:md.papel||"pessoal",is_admin:false};
+    return SB.from("cs_perfis").upsert(row,{onConflict:"user_id"}).select().single().then(function(r){STATE.perfil=r.data||row;}).catch(function(){STATE.perfil=row;});
+  }
+  function startApp(){
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+    var nome=(STATE.perfil&&STATE.perfil.nome)||"Você";
+    document.getElementById("uName").textContent=nome;
+    document.getElementById("uRole").textContent=isProf()?"Profissional":"Pessoal";
+    document.getElementById("uAv").textContent=iniciais(nome);
+    document.getElementById("planLbl").textContent=isProf()?"Plano Profissional":"Plano Pessoal";
+    buildMenu(); go("carteira");
+  }
+  function login(ev){ ev.preventDefault();
+    var email=(num("lgEmail")||"").trim(), pass=num("lgPass");
+    var err=document.getElementById("lgErr"); err.textContent="Entrando…";
+    SB.auth.signInWithPassword({email:email,password:pass}).then(function(r){
+      if(r.error){err.textContent="E-mail ou senha inválidos.";return;}
+      UID=r.data.user.id;
+      loadAll().then(function(){return ensurePerfil(r.data.user);}).then(startApp).catch(function(e){err.textContent="Erro ao carregar dados.";});
+    });
+    return false;
+  }
+  function signup(ev){ ev.preventDefault();
+    var nome=(num("suNome")||"").trim(), papel=num("suPapel"), email=(num("suEmail")||"").trim(), pass=num("suPass");
+    var err=document.getElementById("suErr");
+    if(!email||pass.length<6){err.textContent="Informe e-mail e senha (mín. 6).";return false;}
+    if(!document.getElementById("suConsent").checked){err.textContent="Aceite os Termos.";return false;}
+    err.textContent="Criando conta…";
+    SB.auth.signUp({email:email,password:pass,options:{data:{nome:nome,papel:papel},emailRedirectTo:location.href.split("#")[0]}}).then(function(r){
+      if(r.error){err.textContent="Erro: "+r.error.message;return;}
+      if(r.data.session&&r.data.user){UID=r.data.user.id;ensurePerfil(r.data.user).then(loadAll).then(startApp);}
+      else{err.style.color="#5BE49B";err.textContent="Conta criada! Confirme pelo link no seu e-mail e depois entre.";}
+    });
+    return false;
+  }
+  function forgot(){var em=prompt("Digite seu e-mail para receber o link de recuperação:",num("lgEmail")||"");if(em){SB.auth.resetPasswordForEmail(em,{redirectTo:location.href.split("#")[0]}).then(function(r){alert(r.error?("Erro: "+r.error.message):("Enviamos um link para "+em+"."));});}}
+  function showSignup(on){document.getElementById("viewLogin").classList.toggle("hidden",on);document.getElementById("viewSignup").classList.toggle("hidden",!on);}
+  function logout(){SB.auth.signOut().finally(function(){location.reload();});}
+
+  /* ---------- boot ---------- */
+  function boot(){
+    if(booted)return; booted=true;
+    if(!CFG.supabaseUrl||CFG.supabaseUrl.indexOf("SEU-PROJETO")>=0){ document.getElementById("lgErr").textContent="Configuração do Supabase pendente (dados.js)."; return; }
+    if(!window.supabase){ document.getElementById("lgErr").textContent="Falha ao carregar o Supabase. Verifique a conexão."; return; }
+    SB=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    SB.auth.onAuthStateChange(function(evt){
+      if(evt==="PASSWORD_RECOVERY"){var np=prompt("Defina sua nova senha (mín. 6):");if(np&&np.length>=6)SB.auth.updateUser({password:np}).then(function(r){alert(r.error?("Erro: "+r.error.message):"Senha definida.");});}
+    });
+    SB.auth.getSession().then(function(s){
+      if(s.data&&s.data.session){UID=s.data.session.user.id;loadAll().then(function(){return ensurePerfil(s.data.session.user);}).then(startApp).catch(function(){});}
+    });
+    if("serviceWorker" in navigator){try{navigator.serviceWorker.register("sw.js");}catch(e){}}
+  }
+
+  return {boot:boot,login:login,signup:signup,forgot:forgot,showSignup:showSignup,logout:logout,go:go,
+    abrir:abrir,novaCota:novaCota,editCota:editCota,delCota:delCota,saveCota:saveCota,closeModal:closeModal,
+    togglePago:togglePago,simular:simular,gerarPDF:gerarPDF};
+})();
+document.addEventListener("DOMContentLoaded",VZC.boot);
+if(document.readyState!=="loading")VZC.boot();
+</script>
+</body>
+</html>
