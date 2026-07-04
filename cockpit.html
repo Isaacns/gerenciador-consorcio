@@ -605,18 +605,32 @@ window.APP=(function(){
   }
   function afterAuth(user){
     UID=user.id;S.user=user;
-    return SB.from("co_members").select("*, co_orgs(*)").eq("user_id",UID).eq("ativo",true).limit(1).maybeSingle().then(function(r){
-      if(r.data){ S.member=r.data; S.org=r.data.co_orgs;
-        return SB.from("co_config").select("*").eq("org_id",S.org.id).maybeSingle().then(function(cr){S.config=cr.data||{org_id:S.org.id};return loadAll().then(startApp);});
+    return SB.from("co_members").select("*").eq("user_id",UID).eq("ativo",true).limit(1).maybeSingle().then(function(r){
+      if(r.data&&r.data.org_id){ S.member=r.data;
+        return SB.from("co_orgs").select("*").eq("id",r.data.org_id).maybeSingle().then(function(orr){
+          S.org=orr.data||{id:r.data.org_id,nome:"Minha empresa"};
+          return SB.from("co_config").select("*").eq("org_id",S.org.id).maybeSingle().then(function(cr){S.config=cr.data||{org_id:S.org.id};return loadAll().then(startApp);});
+        });
       } else { return needOrg(user); }
     });
   }
   function needOrg(user){
-    var nome=prompt("Bem-vindo! Qual o nome da sua empresa?","Minha Consultoria");
-    if(nome===null)nome="Minha empresa";
-    return SB.rpc("co_criar_org",{p_nome:nome}).then(function(r){
-      if(r.error){toast("Erro ao criar empresa: "+r.error.message,"danger");return;}
-      return afterAuth(user);
+    S.user=user;UID=user.id;
+    var box=document.querySelector("#login .box");
+    document.getElementById("app").classList.add("hidden");
+    document.getElementById("login").classList.remove("hidden");
+    var nomeSug=(user.user_metadata&&(user.user_metadata.empresa||user.user_metadata.nome))||"";
+    box.innerHTML='<div class="head"><div class="logo"><img src="vizio-symbol-light.png" alt="VIZIO"><div><span class="wm">VIZIO</span><small>CONSÓRCIO · COCKPIT</small></div></div><h1>Vamos criar sua empresa</h1><p>Um passo rápido para montar seu cockpit.</p></div>'+
+      '<div class="card-l"><div class="field"><label>Nome da empresa</label><input id="obEmp" placeholder="Ex.: Elite Consórcios" value="'+esc(nomeSug)+'"></div><div class="err" id="obErr"></div><button class="enter" onclick="APP.criarOrg()">Criar empresa e entrar</button><div style="text-align:center;margin-top:9px"><button class="link" onclick="APP.logout()">Sair</button></div></div>';
+    var el=document.getElementById("obEmp");if(el)el.focus();
+    return Promise.resolve();
+  }
+  function criarOrg(){
+    var nome=v("obEmp").trim()||"Minha empresa";var err=document.getElementById("obErr");if(err)err.textContent="Criando…";
+    SB.rpc("co_criar_org",{p_nome:nome}).then(function(r){
+      if(r.error){if(err)err.textContent="Erro: "+r.error.message;return;}
+      var nm=(S.user.user_metadata&&S.user.user_metadata.nome)||S.user.email;
+      SB.from("co_members").update({nome:nm}).eq("user_id",UID).then(function(){ afterAuth(S.user); });
     });
   }
   function login(){
@@ -640,7 +654,11 @@ window.APP=(function(){
       } else { err.style.color="#5BE49B";err.textContent="Conta criada! Confirme pelo link no seu e-mail e depois entre."; }
     });
   }
-  function forgot(){var em=prompt("E-mail para recuperar a senha:",v("lgEmail"));if(em){SB.auth.resetPasswordForEmail(em,{redirectTo:location.href.split("#")[0]}).then(function(r){alert(r.error?("Erro: "+r.error.message):("Link enviado para "+em));});}}
+  function forgot(){
+    modal("Recuperar senha",'<div class="field"><label>Seu e-mail</label><input id="fg_email" value="'+esc(v("lgEmail"))+'" placeholder="voce@empresa.com.br"></div>',
+      function(){var em=v("fg_email").trim();if(!em){toast("Informe o e-mail.","warn");return false;}
+        SB.auth.resetPasswordForEmail(em,{redirectTo:location.href.split("#")[0]}).then(function(r){closeModal();toast(r.error?("Erro: "+r.error.message):("Link enviado para "+em),r.error?"danger":"ok");});return false;});
+  }
   function showSignup(on){document.getElementById("viewLogin").classList.toggle("hidden",on);document.getElementById("viewSignup").classList.toggle("hidden",!on);}
   function logout(){SB.auth.signOut().finally(function(){location.reload();});}
   function boot(){
@@ -650,7 +668,7 @@ window.APP=(function(){
     SB.auth.getSession().then(function(s){if(s.data&&s.data.session){afterAuth(s.data.session.user).catch(function(){});}});
   }
 
-  return {boot:boot,go:go,login:login,signup:signup,forgot:forgot,showSignup:showSignup,logout:logout,toast:toast,
+  return {boot:boot,go:go,login:login,signup:signup,forgot:forgot,showSignup:showSignup,logout:logout,toast:toast,criarOrg:criarOrg,
     formCliente:formCliente,delCliente:delCliente,qcli:qcli,formVenda:formVenda,delVenda:delVenda,
     formContrato:formContrato,qcon:qcon,portalLink:portalLink,formLanc:formLanc,delLanc:delLanc,
     formEvento:formEvento,delEvento:delEvento,formAviso:formAviso,delAviso:delAviso,
