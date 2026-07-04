@@ -74,6 +74,23 @@ tbody tr.clk{cursor:pointer}tbody tr.clk:hover{background:var(--surface2)}
 .pcol h4{font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between}
 .pcard{background:var(--surface2);border:1px solid var(--border2);border-radius:9px;padding:9px 10px;margin-bottom:8px;cursor:pointer}
 .pcard b{color:#fff;font-size:.82rem;display:block}.pcard span{color:var(--muted2);font-size:.72rem}
+.pcol.dragover{border-color:var(--blue);background:rgba(37,99,235,.06)}
+.pcard{transition:transform .08s,box-shadow .12s;position:relative}
+.pcard:hover{border-color:var(--blue);box-shadow:0 6px 16px rgba(0,0,0,.28)}
+.pcard.dragging{opacity:.45}
+.pcard .ptop{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.pcard .pval{color:#fff;font-weight:800;font-size:.86rem;font-variant-numeric:tabular-nums}
+.pcard .pmeta{display:flex;align-items:center;justify-content:space-between;margin-top:7px}
+.prob{font-size:.64rem;font-weight:700;padding:1px 6px;border-radius:20px;background:var(--soft);color:var(--blue-l)}
+.pcard .qa{position:absolute;top:6px;right:6px;display:none;gap:3px}
+.pcard:hover .qa{display:flex}
+.qa button{border:0;width:22px;height:22px;border-radius:6px;cursor:pointer;font-size:.72rem;line-height:1;display:flex;align-items:center;justify-content:center}
+.qa .win{background:var(--ok-bg);color:#5BE49B}.qa .lose{background:var(--rose-bg);color:#FDA4AF}.qa .win:hover{background:var(--ok-bd)}.qa .lose:hover{background:#7a2230}
+.pcol.won{background:linear-gradient(180deg,rgba(22,163,74,.05),transparent)}
+.pcolhead{display:flex;justify-content:space-between;align-items:center;font-size:.7rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin-bottom:8px;font-weight:700}
+.pcolhead .cnt{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:1px 8px;color:var(--text)}
+.pcoltot{color:var(--muted2);font-size:.72rem;margin-top:6px;border-top:1px dashed var(--border2);padding-top:6px}
+.mini-bar{height:5px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:6px}.mini-bar i{display:block;height:100%;background:linear-gradient(90deg,#2563EB,#3C94FC)}
 .bar{height:7px;background:var(--border);border-radius:4px;overflow:hidden;min-width:60px}.bar i{display:block;height:100%;background:linear-gradient(90deg,#2563EB,#3C94FC)}
 /* modal */
 .ovl{position:fixed;inset:0;background:rgba(6,9,15,.66);display:flex;align-items:center;justify-content:center;z-index:400;padding:18px}
@@ -323,18 +340,92 @@ window.APP=(function(){
   }
   function delCliente(id){if(!confirm("Excluir cliente e seus contratos?"))return;del("clientes",id).then(function(){Promise.all([reload("clientes"),reload("contratos")]).then(function(){toast("Excluído.","ok");renderClientes();});});}
 
-  /* ================= VENDAS (pipeline) ================= */
-  var ETAPAS=[["lead","Lead"],["contato","Contato"],["proposta","Proposta"],["negociacao","Negociação"],["fechado","Fechado"],["perdido","Perdido"]];
+  /* ================= VENDAS (pipeline premium) ================= */
+  var ETAPAS=[["lead","Lead",10],["contato","Contato",25],["proposta","Proposta",50],["negociacao","Negociação",75],["fechado","Fechado",100],["perdido","Perdido",0]];
+  function probPad(et){var e=ETAPAS.find(function(x){return x[0]===et;});return e?e[2]:0;}
+  function probDe(x){return x.probabilidade!=null?Number(x.probabilidade):probPad(x.etapa);}
+  function vendasBase(txt){
+    var q=(S._qv||"").toLowerCase(), fc=S._vcons||"";
+    return S.vendas.filter(function(x){
+      if(fc&&x.consultor_id!==fc)return false;
+      if(txt&&q&&((x.titulo||"")+clienteNome(x.cliente_id)+memberNome(x.consultor_id)).toLowerCase().indexOf(q)<0)return false;
+      return true;
+    });
+  }
   function renderVendas(){
-    var cols=ETAPAS.map(function(e){
-      var itens=S.vendas.filter(function(x){return x.etapa===e[0];});
-      var tot=itens.reduce(function(s,x){return s+(Number(x.valor_credito)||0);},0);
-      return '<div class="pcol"><h4><span>'+e[1]+'</span><span class="num">'+itens.length+'</span></h4>'+
-        itens.map(function(x){return '<div class="pcard" onclick="APP.formVenda(\''+x.id+'\')"><b>'+esc(x.titulo||clienteNome(x.cliente_id))+'</b><span>'+BRL(x.valor_credito)+' · '+esc(memberNome(x.consultor_id))+'</span></div>';}).join("")+
-        '<div style="color:var(--muted2);font-size:.72rem;margin-top:4px">'+BRL(tot)+'</div></div>';
+    var base=vendasBase(false), mesAtual=today().slice(0,7);
+    var abertos=base.filter(function(x){return x.etapa!=="fechado"&&x.etapa!=="perdido";});
+    var pipeVal=abertos.reduce(function(s,x){return s+(+x.valor_credito||0);},0);
+    var ponderado=abertos.reduce(function(s,x){return s+((+x.valor_credito||0)*probDe(x)/100);},0);
+    var fechMes=base.filter(function(x){return x.etapa==="fechado"&&mes(x.data_fechamento)===mesAtual;});
+    var credMes=fechMes.reduce(function(s,x){return s+(+x.valor_credito||0);},0);
+    var comMes=fechMes.reduce(function(s,x){return s+(+x.comissao||0);},0);
+    var fechTot=base.filter(function(x){return x.etapa==="fechado";}).length, perdTot=base.filter(function(x){return x.etapa==="perdido";}).length;
+    var conv=(fechTot+perdTot)>0?Math.round(fechTot/(fechTot+perdTot)*100):0;
+    var optCons='<option value="">Todos os consultores</option>'+S.members.map(function(m){return '<option value="'+m.id+'"'+(m.id===S._vcons?" selected":"")+'>'+esc(m.nome||"—")+'</option>';}).join("");
+    document.getElementById("view").innerHTML=topbar("Vendas","Gerenciador de vendas — arraste os cards pelo funil até o fechamento.",'<button class="btn" onclick="APP.formVenda()">＋ Nova oportunidade</button>')+
+      '<div class="kpis">'+
+        kpi("Pipeline aberto",BRL(pipeVal),abertos.length+" oportunidade(s)","")+
+        kpi("Previsão ponderada",BRL(ponderado),"por probabilidade","accent")+
+        kpi("Fechado no mês",BRL(credMes),fechMes.length+" fechado(s) · com. "+BRL(comMes),"")+
+        kpi("Taxa de conversão",conv+"%","ganhos vs. perdidos","")+
+      '</div>'+
+      '<div class="tools"><select onchange="APP.vcons(this.value)">'+optCons+'</select><input id="vq" placeholder="Buscar oportunidade / cliente / consultor..." value="'+esc(S._qv||"")+'" oninput="APP.qv(this.value)"></div>'+
+      '<div class="pipe" id="vpipe"></div>';
+    renderPipe();
+    if(S._qv){var el=document.getElementById("vq");if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);}}
+  }
+  function renderPipe(){
+    var base=vendasBase(true);
+    var totals=ETAPAS.map(function(e){return base.filter(function(x){return x.etapa===e[0];}).reduce(function(s,x){return s+(+x.valor_credito||0);},0);});
+    var maxCol=Math.max.apply(null,totals.concat([1]));
+    var cols=ETAPAS.map(function(e,idx){
+      var itens=base.filter(function(x){return x.etapa===e[0];});
+      return '<div class="pcol'+(e[0]==="fechado"?" won":"")+'" ondragover="APP.dragOver(event)" ondragleave="APP.dragLeave(event)" ondrop="APP.drop(event,\''+e[0]+'\')">'+
+        '<div class="pcolhead"><span>'+e[1]+'</span><span class="cnt">'+itens.length+'</span></div>'+
+        itens.map(cardVenda).join("")+
+        '<div class="pcoltot">'+BRL(totals[idx])+'</div><div class="mini-bar"><i style="width:'+Math.round(totals[idx]/maxCol*100)+'%"></i></div></div>';
     }).join("");
-    document.getElementById("view").innerHTML=topbar("Vendas","Gerenciador de vendas — arraste seu funil até o fechamento.",'<button class="btn" onclick="APP.formVenda()">＋ Nova oportunidade</button>')+
-      '<div class="pipe">'+cols+'</div>';
+    var vp=document.getElementById("vpipe");if(vp)vp.innerHTML=cols;
+  }
+  function cardVenda(x){
+    var prob=probDe(x);
+    var qa=(x.etapa!=="fechado"&&x.etapa!=="perdido")
+      ? '<div class="qa"><button class="win" title="Marcar ganho" onclick="event.stopPropagation();APP.ganhar(\''+x.id+'\')">✓</button><button class="lose" title="Marcar perdido" onclick="event.stopPropagation();APP.perder(\''+x.id+'\')">✕</button></div>'
+      : (x.etapa==="fechado"?'<div class="qa"><button class="win" title="Gerar contrato" onclick="event.stopPropagation();APP.gerarContrato(\''+x.id+'\')">📄</button></div>':"");
+    return '<div class="pcard" draggable="true" ondragstart="APP.dragStart(event,\''+x.id+'\')" ondragend="APP.dragEnd(event)" onclick="APP.formVenda(\''+x.id+'\')">'+qa+
+      '<div class="ptop"><b>'+esc(x.titulo||clienteNome(x.cliente_id))+'</b></div>'+
+      '<div class="pmeta"><span class="pval">'+BRL(x.valor_credito)+'</span><span class="prob">'+prob+'%</span></div>'+
+      '<div style="display:flex;align-items:center;gap:6px;margin-top:7px"><span class="avatar-s" style="width:20px;height:20px;font-size:.6rem">'+ini(memberNome(x.consultor_id))+'</span><span style="color:var(--muted2);font-size:.72rem">'+esc(memberNome(x.consultor_id))+(x.proxima_data?(' · ⏰ '+dBR(x.proxima_data)):"")+'</span></div>'+
+      '</div>';
+  }
+  function qv(x){S._qv=x;renderPipe();}
+  function vcons(x){S._vcons=x;renderVendas();}
+  function dragStart(ev,id){S._drag=id;try{ev.dataTransfer.effectAllowed="move";ev.currentTarget.classList.add("dragging");}catch(e){}}
+  function dragEnd(ev){try{ev.currentTarget.classList.remove("dragging");}catch(e){}}
+  function dragOver(ev){ev.preventDefault();try{ev.dataTransfer.dropEffect="move";}catch(e){}ev.currentTarget.classList.add("dragover");}
+  function dragLeave(ev){ev.currentTarget.classList.remove("dragover");}
+  function drop(ev,etapa){ev.preventDefault();ev.currentTarget.classList.remove("dragover");var id=S._drag;S._drag=null;if(id)moverEtapa(id,etapa);}
+  function moverEtapa(id,etapa){
+    var x=S.vendas.find(function(v){return v.id===id;});if(!x||x.etapa===etapa)return;
+    if(etapa==="perdido"){perder(id);return;}
+    var obj={etapa:etapa,probabilidade:probPad(etapa),motivo_perda:null};
+    obj.data_fechamento=(etapa==="fechado")?(x.data_fechamento||today()):null;
+    update("vendas",id,obj).then(function(r){if(r.error){toast("Erro: "+r.error.message,"danger");return;}reload("vendas").then(function(){renderVendas();if(etapa==="fechado")toast("🎉 Negócio fechado! Use 📄 no card para gerar o contrato.","ok");});});
+  }
+  function ganhar(id){moverEtapa(id,"fechado");}
+  function perder(id){
+    modal("Marcar como perdido",
+      '<div class="field"><label>Motivo da perda</label><select id="mp_sel"><option>Preço / parcela</option><option>Prazo de contemplação</option><option>Concorrência</option><option>Sem resposta</option><option>Desistiu da compra</option><option>Outro</option></select></div>'+
+      '<div class="field"><label>Observação (opcional)</label><input id="mp_obs" placeholder="Detalhe para reativar depois..."></div>',
+      function(){var mot=v("mp_sel")+(v("mp_obs")?(" — "+v("mp_obs")):"");
+        update("vendas",id,{etapa:"perdido",probabilidade:0,data_fechamento:null,motivo_perda:mot}).then(function(r){if(r.error){toast("Erro: "+r.error.message,"danger");return;}reload("vendas").then(function(){closeModal();toast("Registrado. Fica em Recuperação para reativar. 💪","ok");renderVendas();});});
+        return false;});
+  }
+  function gerarContrato(vid){
+    var x=S.vendas.find(function(v){return v.id===vid;});if(!x)return;
+    if(!x.cliente_id){toast("Vincule um cliente à venda antes de gerar o contrato.","warn");formVenda(vid);return;}
+    formContrato(null,{cliente_id:x.cliente_id,valor_credito:x.valor_credito,bem:(x.titulo||"").replace(/^Cons[óo]rcio\s*/i,"")});
   }
   function formVenda(id){
     var x=id?S.vendas.find(function(v){return v.id===id;}):{etapa:"lead"};
@@ -345,19 +436,22 @@ window.APP=(function(){
       '<div class="field"><label>Título</label><input id="v_tit" value="'+esc(x.titulo||"")+'" placeholder="Ex.: Consórcio imóvel 200k"></div>'+
       '<div class="fgrid"><div class="field"><label>Cliente</label><select id="v_cli"><option value="">—</option>'+optC+'</select></div><div class="field"><label>Consultor</label><select id="v_cons"><option value="">—</option>'+optM+'</select></div></div>'+
       '<div class="fgrid"><div class="field"><label>Etapa</label><select id="v_etapa">'+optE+'</select></div><div class="field"><label>Valor do crédito (R$)</label><input id="v_val" type="number" step="0.01" value="'+(x.valor_credito||"")+'"></div></div>'+
-      '<div class="fgrid"><div class="field"><label>Comissão (R$)</label><input id="v_com" type="number" step="0.01" value="'+(x.comissao||"")+'"></div><div class="field"><label>Previsão de fechamento</label><input id="v_prev" type="date" value="'+esc(x.data_prevista||"")+'"></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Comissão (R$)</label><input id="v_com" type="number" step="0.01" value="'+(x.comissao||"")+'"></div><div class="field"><label>Probabilidade (%)</label><input id="v_prob" type="number" min="0" max="100" value="'+(x.probabilidade!=null?x.probabilidade:probPad(x.etapa))+'"></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Próxima ação</label><input id="v_pa" value="'+esc(x.proxima_acao||"")+'" placeholder="Ligar, enviar simulação..."></div><div class="field"><label>Data da próxima ação</label><input id="v_pd" type="date" value="'+esc(x.proxima_data||"")+'"></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Previsão de fechamento</label><input id="v_prev" type="date" value="'+esc(x.data_prevista||"")+'"></div><div class="field"><label>&nbsp;</label><div style="color:var(--muted2);font-size:.76rem;padding-top:9px">'+(x.motivo_perda?("Perda: "+esc(x.motivo_perda)):"")+'</div></div></div>'+
       '<div class="field"><label>Observações</label><textarea id="v_obs">'+esc(x.obs||"")+'</textarea></div>',
       function(){
         var et=v("v_etapa");
         var obj={titulo:v("v_tit")||null,cliente_id:v("v_cli")||null,consultor_id:v("v_cons")||null,etapa:et,
-          valor_credito:Number(v("v_val"))||0,comissao:Number(v("v_com"))||0,data_prevista:v("v_prev")||null,obs:v("v_obs")||null,
+          valor_credito:Number(v("v_val"))||0,comissao:Number(v("v_com"))||0,probabilidade:v("v_prob")===""?probPad(et):Number(v("v_prob")),
+          proxima_acao:v("v_pa")||null,proxima_data:v("v_pd")||null,data_prevista:v("v_prev")||null,obs:v("v_obs")||null,
           data_fechamento: et==="fechado" ? (x.data_fechamento||today()) : null};
         var p=id?update("vendas",id,obj):insert("vendas",obj);
         p.then(function(r){if(r.error){toast("Erro: "+r.error.message,"danger");return;}reload("vendas").then(function(){closeModal();toast("Salvo.","ok");renderVendas();});});
         return false;
       }, id?'<button class="btn ghost sm" onclick="APP.delVenda(\''+id+'\')">Excluir</button>':"");
   }
-  function delVenda(id){del("vendas",id).then(function(){reload("vendas").then(function(){closeModal();toast("Excluído.","ok");renderVendas();});});}
+  function delVenda(id){if(!confirm("Excluir esta oportunidade?"))return;del("vendas",id).then(function(){reload("vendas").then(function(){closeModal();toast("Excluído.","ok");renderVendas();});});}
 
   /* ================= CONTRATOS ================= */
   function parcelaContrato(c){
@@ -382,8 +476,8 @@ window.APP=(function(){
       }).join(""):'<tr><td colspan="7" class="empty">Nenhum contrato ainda.</td></tr>')+'</tbody></table></div>';
   }
   function qcon(x){S._qcon=x;renderContratos();}
-  function formContrato(id){
-    var c=id?S.contratos.find(function(x){return x.id===id;}):{tipo:"consorcio",indice_reajuste:"INCC",sistema:"SAC",status:"andamento"};
+  function formContrato(id,prefill){
+    var c=id?S.contratos.find(function(x){return x.id===id;}):Object.assign({tipo:"consorcio",indice_reajuste:"INCC",sistema:"SAC",status:"andamento"},prefill||{});
     var optC=S.clientes.map(function(x){return '<option value="'+x.id+'"'+(x.id===c.cliente_id?" selected":"")+'>'+esc(x.nome)+'</option>';}).join("");
     modal((id?"Editar contrato":"Novo contrato"),
       '<div class="fgrid"><div class="field"><label>Cliente *</label><select id="k_cli"><option value="">—</option>'+optC+'</select></div>'+
@@ -671,6 +765,8 @@ window.APP=(function(){
   return {boot:boot,go:go,login:login,signup:signup,forgot:forgot,showSignup:showSignup,logout:logout,toast:toast,criarOrg:criarOrg,
     formCliente:formCliente,delCliente:delCliente,qcli:qcli,formVenda:formVenda,delVenda:delVenda,
     formContrato:formContrato,qcon:qcon,portalLink:portalLink,formLanc:formLanc,delLanc:delLanc,
+    qv:qv,vcons:vcons,dragStart:dragStart,dragEnd:dragEnd,dragOver:dragOver,dragLeave:dragLeave,drop:drop,
+    moverEtapa:moverEtapa,ganhar:ganhar,perder:perder,gerarContrato:gerarContrato,
     formEvento:formEvento,delEvento:delEvento,formAviso:formAviso,delAviso:delAviso,
     pausa:pausa,fimPausa:fimPausa,saveConfig:saveConfig,closeModal:closeModal};
 })();
