@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acompanhe seu processo · Vizio Consórcio</title>
+<meta name="theme-color" content="#2563EB">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Raleway:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#2563EB;--blue-l:#3C94FC;--blue-d:#1D4ED8;
+  --bg:#0B0E16;--bg2:#0E121C;--surface:#141A26;--surface2:#1A2030;--border:#27304A;--border2:#1E2638;
+  --text:#E6EAF2;--head:#FFFFFF;--muted:#9AA6BE;--muted2:#7C879E;--soft:rgba(37,99,235,.16);
+  --ok:#34D77F;--ok-bg:rgba(22,163,74,.16);--ok-bd:#1F7A48;--gold:#F5C451;
+  --font:'Inter',system-ui,sans-serif;--font-display:'Raleway','Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:
+  radial-gradient(120% 80% at 85% -10%,#16224A 0%,rgba(11,14,22,0) 55%),
+  radial-gradient(90% 70% at 0% 110%,#1B1740 0%,rgba(11,14,22,0) 50%),var(--bg);
+  color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.55;min-height:100vh}
+h1,h2,h3,.wm{font-family:var(--font-display);letter-spacing:-.01em}
+.wrap{max-width:760px;margin:0 auto;padding:26px 18px 60px}
+@keyframes vzpulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(37,99,235,0))}50%{transform:scale(1.06);filter:drop-shadow(0 0 10px rgba(37,99,235,.5))}}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:9px}.brand img{height:26px;animation:vzpulse 2.8s ease-in-out infinite}
+.brand .wm{font-weight:800;letter-spacing:.16em;font-size:.95rem;color:#fff}.brand small{display:block;color:var(--muted2);font-size:.58rem;letter-spacing:.08em}
+.empresa{font-size:.82rem;color:var(--muted)}.empresa b{color:#D7DEEC}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:16px}
+.hello{font-size:.9rem;color:var(--muted)}.hello b{color:#fff}
+h1.title{font-size:1.5rem;color:#fff;margin:4px 0 2px}
+.sub{color:var(--muted);font-size:.92rem}
+.badge{display:inline-block;font-size:.74rem;font-weight:700;padding:4px 12px;border-radius:20px}
+.b-blue{background:var(--soft);color:var(--blue-l)}.b-ok{background:var(--ok-bg);color:#5BE49B;border:1px solid var(--ok-bd)}
+.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+.meta div{background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:13px 15px}
+.meta .l{font-size:.68rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+.meta .v{font-size:1.05rem;color:#fff;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}
+.prog{margin-top:20px}
+.prog .lab{display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted);margin-bottom:7px}
+.bar{height:14px;background:var(--border);border-radius:10px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#2563EB,#3C94FC);border-radius:10px;transition:width 1s ease}
+.next{margin-top:18px;background:linear-gradient(150% 130% at 85% 0%,#16224A,#141A26 60%);border:1px solid #26407F;border-radius:13px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.next .k{color:var(--muted);font-size:.82rem}.next .val{color:#fff;font-weight:800;font-size:1.15rem;font-variant-numeric:tabular-nums}
+/* jornada */
+.journey{margin-top:8px}
+.step{display:flex;gap:14px;padding:12px 0}
+.dot{width:34px;height:34px;border-radius:50%;flex:0 0 34px;display:flex;align-items:center;justify-content:center;font-size:1rem;border:2px solid var(--border);background:var(--surface2);color:var(--muted2);position:relative}
+.step.done .dot{background:var(--ok-bg);border-color:var(--ok-bd);color:#5BE49B}
+.step.active .dot{background:var(--soft);border-color:var(--blue);color:#fff;box-shadow:0 0 0 4px var(--soft)}
+.step .line{position:absolute;top:34px;left:50%;transform:translateX(-50%);width:2px;height:26px;background:var(--border)}
+.step:last-child .line{display:none}
+.step .txt b{color:#fff;font-size:.92rem;display:block}.step .txt span{color:var(--muted);font-size:.82rem}
+.step.done .txt b{color:#D7DEEC}
+/* contemplação */
+.celebrate{background:linear-gradient(160% 140% at 80% 0%,#1E2A12 0%,#141A26 55%);border:1px solid var(--ok-bd);border-radius:16px;padding:26px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden}
+.celebrate .big{font-size:2.6rem}
+.celebrate h2{font-size:1.6rem;color:#fff;margin:6px 0}
+.celebrate p{color:#D7DEEC;font-size:.98rem;max-width:520px;margin:0 auto}
+.reassure{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:12px;padding:16px 18px;color:var(--text);font-size:.92rem;margin-bottom:16px}
+.reassure b{color:#fff}
+.foot{text-align:center;color:var(--muted2);font-size:.78rem;margin-top:24px}
+.loading,.err{text-align:center;color:var(--muted);padding:60px 20px}
+.err b{color:#fff}
+@media(max-width:560px){.meta{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><img src="vizio-symbol-light.png" alt="VIZIO"><div><span class="wm">VIZIO</span><small>CONSÓRCIO</small></div></div>
+    <div class="empresa" id="empresa"></div>
+  </div>
+  <div id="content"><div class="loading">Carregando seu acompanhamento…</div></div>
+  <div class="foot" id="foot"></div>
+</div>
+
+<script src="dados.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  "use strict";
+  var CFG=(typeof DADOS!=="undefined"&&DADOS._cfg)?DADOS._cfg:{};
+  function BRL(n){return "R$ "+(Number(n)||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function dBR(s){if(!s)return "—";var p=String(s).slice(0,10).split("-");return p.length===3?(p[2]+"/"+p[1]+"/"+p[0]):s;}
+  function q(name){var m=new RegExp("[?&]"+name+"=([^&]+)").exec(location.search);return m?decodeURIComponent(m[1]):"";}
+  function err(msg){document.getElementById("content").innerHTML='<div class="err"><div style="font-size:2rem">🔒</div><b>'+esc(msg)+'</b><br><span style="font-size:.88rem">Confira o link com a empresa que enviou o acompanhamento.</span></div>';}
+
+  var token=q("t");
+  if(!token){err("Link inválido.");return;}
+  if(!CFG.supabaseUrl||!window.supabase){err("Serviço indisponível no momento.");return;}
+  var SB=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseKey);
+
+  SB.rpc("portal_contrato",{p_token:token}).then(function(r){
+    if(r.error||!r.data){err("Não encontramos este acompanhamento.");return;}
+    render(r.data);
+  }).catch(function(){err("Não foi possível carregar agora.");});
+
+  function render(d){
+    document.getElementById("empresa").innerHTML='Acompanhamento por <b>'+esc(d.empresa||"sua consultoria")+'</b>';
+    document.getElementById("foot").innerHTML=esc(d.empresa||"")+' · powered by <b style="color:#9AA6BE">Vizio Consórcio</b> · um produto INPERSON';
+    var tipoLabel=d.tipo==="financiamento"?"financiamento":"consórcio";
+    var pagas=Number(d.pagas)||0, total=Number(d.total_parcelas)||0;
+    var pct=total>0?Math.round(pagas/total*100):0;
+    var contemplado=!!d.contemplado;
+    var html="";
+
+    if(contemplado){
+      html+='<div class="celebrate"><div class="big">🎉🔑</div><h2>Você foi contemplado!</h2>'+
+        '<p>'+esc((d.cliente||"").split(" ")[0])+', chegou o grande momento: sua carta de crédito de <b style="color:#fff">'+BRL(d.valor_credito)+'</b> foi <b style="color:#5BE49B">contemplada</b>'+(d.data_contemplacao?(' em <b style="color:#fff">'+dBR(d.data_contemplacao)+'</b>'):"")+'. É a conquista do seu '+esc(d.bem||"bem")+' saindo do papel. A '+esc(d.empresa||"nossa equipe")+' vai te guiar em cada passo daqui pra frente — você não está sozinho nessa. Parabéns! 👏</p></div>';
+    }
+
+    html+='<div class="card">'+
+      '<div class="hello">Olá, <b>'+esc(d.cliente||"cliente")+'</b> 👋</div>'+
+      '<h1 class="title">Seu '+tipoLabel+' está '+(contemplado?'<span style="color:#5BE49B">contemplado</span>':'em dia e avançando')+'</h1>'+
+      '<div class="sub">'+esc((d.bem?("Rumo ao seu "+d.bem):"Rumo à sua conquista"))+(d.administradora?(" · "+esc(d.administradora)):"")+'</div>'+
+      '<div class="meta">'+
+        '<div><div class="l">Carta de crédito</div><div class="v">'+BRL(d.valor_credito)+'</div></div>'+
+        '<div><div class="l">Parcela</div><div class="v">'+BRL(d.parcela_base)+'</div></div>'+
+        '<div><div class="l">Situação</div><div class="v">'+(contemplado?'<span class="badge b-ok">Contemplado</span>':'<span class="badge b-blue">Em andamento</span>')+'</div></div>'+
+      '</div>'+
+      (total>0?('<div class="prog"><div class="lab"><span>Progresso do plano</span><span>'+pagas+' de '+total+' parcelas · '+pct+'%</span></div><div class="bar"><i style="width:'+pct+'%"></i></div></div>'):"")+
+      (d.proxima&&!contemplado?('<div class="next"><div><div class="k">Próxima parcela</div><div class="val">'+BRL(d.proxima.valor)+'</div></div><div style="text-align:right"><div class="k">Vencimento</div><div class="val">'+dBR(d.proxima.vencimento)+'</div></div></div>'):"")+
+      '</div>';
+
+    // reassurance (para o cliente ansioso)
+    if(!contemplado){
+      html+='<div class="reassure">💙 <b>Fique tranquilo(a).</b> Cada parcela paga te aproxima da contemplação. Seu plano está sendo acompanhado de perto pela '+esc(d.empresa||"nossa equipe")+' — e assim que a sua vez chegar, você será o(a) primeiro(a) a saber, aqui mesmo. Estamos com você em cada etapa. 🤝</div>';
+    }
+
+    // jornada
+    var steps=[
+      {ic:"📝",t:"Adesão ao plano",s:"Você deu o passo mais importante: começar.",done:true,active:false},
+      {ic:"📅",t:"Pagamentos em dia",s:pagas+" de "+(total||"—")+" parcelas — construindo sua conquista.",done:pagas>0,active:!contemplado},
+      {ic:"🎯",t:"Contemplação",s:contemplado?("Contemplado"+(d.data_contemplacao?(" em "+dBR(d.data_contemplacao)):"")+"! 🎉"):"Seu grande momento está a caminho.",done:contemplado,active:contemplado},
+      {ic:"🔑",t:"Conquista do "+(d.bem||"bem"),s:contemplado?"A reta final para realizar seu sonho.":"O objetivo de tudo isso.",done:false,active:false}
+    ];
+    html+='<div class="card"><h2 style="font-size:1.05rem;color:#fff;margin-bottom:4px">Sua jornada</h2><div class="sub" style="margin-bottom:10px">Onde você está e o que vem pela frente.</div><div class="journey">'+
+      steps.map(function(st){return '<div class="step '+(st.done?"done":"")+' '+(st.active?"active":"")+'"><div class="dot">'+(st.done?"✓":st.ic)+'<span class="line"></span></div><div class="txt"><b>'+esc(st.t)+'</b><span>'+esc(st.s)+'</span></div></div>';}).join("")+
+      '</div></div>';
+
+    document.getElementById("content").innerHTML=html;
+  }
+})();
+</script>
+</body>
+</html>

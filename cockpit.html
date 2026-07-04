@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cockpit · Vizio Consórcio</title>
+<meta name="theme-color" content="#2563EB">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Raleway:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#2563EB;--blue-l:#3C94FC;--blue-d:#1D4ED8;
+  --bg:#0B0E16;--bg2:#0E121C;--surface:#141A26;--surface2:#1A2030;--border:#27304A;--border2:#1E2638;
+  --text:#E6EAF2;--head:#FFFFFF;--muted:#9AA6BE;--muted2:#7C879E;--soft:rgba(37,99,235,.16);
+  --ok:#34D77F;--ok-bg:rgba(22,163,74,.16);--ok-bd:#1F7A48;--warn:#F0A33C;--warn-bg:rgba(217,119,6,.16);
+  --vio:#A78BFA;--vio-bg:rgba(124,58,237,.18);--vio-bd:#5B3CA6;--rose:#FB7185;--rose-bg:rgba(225,29,72,.14);
+  --font:'Inter',system-ui,sans-serif;--font-display:'Raleway','Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5}
+h1,h2,h3,.brand .wm{font-family:var(--font-display);letter-spacing:-.01em}
+a{color:var(--blue-l);text-decoration:none}.hidden{display:none!important}.num{font-variant-numeric:tabular-nums}
+.app{display:flex;min-height:100vh}
+@keyframes vzpulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(37,99,235,0))}50%{transform:scale(1.06);filter:drop-shadow(0 0 10px rgba(37,99,235,.5))}}
+.brand img{animation:vzpulse 2.8s ease-in-out infinite}
+.badge-cs{font-family:var(--font-display);font-weight:700;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--blue);padding:2px 7px;border-radius:5px}
+aside{width:240px;flex:0 0 240px;background:var(--bg2);border-right:1px solid var(--border2);padding:18px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:9px;padding:2px 6px 14px;border-bottom:1px solid var(--border2);margin-bottom:6px}
+.brand img{height:26px}.brand .wm{font-weight:800;letter-spacing:.16em;font-size:.95rem;color:#fff}
+.brand small{display:block;color:var(--muted2);font-size:.58rem;letter-spacing:.08em}
+.orgname{font-size:.8rem;color:var(--muted);padding:6px 8px 10px}.orgname b{color:#D7DEEC}
+.navsec{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2);padding:12px 10px 4px;font-weight:700}
+nav.menu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:0;color:var(--muted);font:inherit;font-size:.88rem;font-weight:600;padding:9px 11px;border-radius:9px;cursor:pointer;transition:.12s}
+nav.menu button .ic{width:16px;text-align:center;font-size:.95rem;opacity:.9}
+nav.menu button:hover{background:var(--surface);color:var(--text)}
+nav.menu button.active{background:var(--soft);color:#fff}
+.side-foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--border2);font-size:.74rem;color:var(--muted2)}
+.side-foot .who{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2563EB,#7C3AED);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.72rem}
+.who b{color:#D7DEEC;font-size:.8rem;display:block}.logout{background:none;border:0;color:var(--muted2);font:inherit;font-size:.74rem;cursor:pointer}.logout:hover{color:var(--text)}
+main{flex:1;min-width:0;padding:22px 28px 60px;max-width:1240px}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.topbar h1{font-size:1.42rem;font-weight:800;color:#fff}.topbar p{color:var(--muted);font-size:.9rem;margin-top:2px}
+.btn{display:inline-flex;align-items:center;gap:7px;background:var(--blue);color:#fff;border:0;border-radius:9px;padding:9px 15px;font:inherit;font-weight:700;font-size:.88rem;cursor:pointer;transition:.12s}
+.btn:hover{background:var(--blue-d)}.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}.btn.ghost:hover{border-color:var(--blue-l);color:#fff}
+.btn.sm{padding:6px 11px;font-size:.8rem}.btn.rose{background:var(--rose)}
+.view{display:none;animation:fade .22s ease}.view.show{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:15px 16px}
+.kpi .lab{font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.kpi .val{font-size:1.42rem;font-weight:800;color:#fff;margin-top:7px}.kpi .sub{font-size:.76rem;color:var(--muted2);margin-top:2px}
+.kpi.accent{background:linear-gradient(150% 130% at 90% 0%,#16224A,#141A26 55%);border-color:#26407F}
+.grid2{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:16px 18px;margin-bottom:16px}
+.card h2{font-size:.98rem;font-weight:800;color:#fff;margin-bottom:2px}.card .csub{font-size:.8rem;color:var(--muted);margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th{text-align:left;font-size:.68rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted2);font-weight:700;padding:8px 9px;border-bottom:1px solid var(--border)}
+td{padding:9px 9px;border-bottom:1px solid var(--border2);color:var(--text)}tr:last-child td{border-bottom:0}
+tbody tr.clk{cursor:pointer}tbody tr.clk:hover{background:var(--surface2)}
+.badge{display:inline-block;font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.b-blue{background:var(--soft);color:var(--blue-l)}.b-ok{background:var(--ok-bg);color:#5BE49B;border:1px solid var(--ok-bd)}
+.b-warn{background:var(--warn-bg);color:#F0B968}.b-vio{background:var(--vio-bg);color:#C9B8FB;border:1px solid var(--vio-bd)}.b-rose{background:var(--rose-bg);color:#FDA4AF}
+.act{border:0;background:none;padding:4px 6px;border-radius:6px;cursor:pointer;color:var(--muted)}.act:hover{background:var(--surface2);color:#fff}
+.pill{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:3px 10px;font-size:.76rem;color:var(--muted)}
+.tools{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.tools input,.tools select{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 11px;color:#fff;font:inherit;font-size:.85rem}
+.avatar-s{width:26px;height:26px;border-radius:7px;background:var(--soft);display:flex;align-items:center;justify-content:center;color:var(--blue-l);font-weight:800;font-size:.72rem;flex:0 0 26px}
+.person{display:flex;align-items:center;gap:9px}.person b{color:#fff;font-weight:700;font-size:.88rem;display:block}.person span{color:var(--muted2);font-size:.74rem}
+/* pipeline */
+.pipe{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;align-items:start}
+.pcol{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:10px;min-height:120px}
+.pcol h4{font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between}
+.pcard{background:var(--surface2);border:1px solid var(--border2);border-radius:9px;padding:9px 10px;margin-bottom:8px;cursor:pointer}
+.pcard b{color:#fff;font-size:.82rem;display:block}.pcard span{color:var(--muted2);font-size:.72rem}
+.bar{height:7px;background:var(--border);border-radius:4px;overflow:hidden;min-width:60px}.bar i{display:block;height:100%;background:linear-gradient(90deg,#2563EB,#3C94FC)}
+/* modal */
+.ovl{position:fixed;inset:0;background:rgba(6,9,15,.66);display:flex;align-items:center;justify-content:center;z-index:400;padding:18px}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:15px;max-width:600px;width:100%;max-height:92vh;overflow:auto}
+.modal h3{padding:16px 20px;border-bottom:1px solid var(--border2);font-size:1.02rem;color:#fff}
+.modal .body{padding:16px 20px}.modal .foot2{padding:12px 20px;border-top:1px solid var(--border2);display:flex;gap:9px;justify-content:flex-end}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.field{margin-bottom:11px}
+.field label{display:block;font-size:.78rem;color:var(--muted);font-weight:600;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 11px;color:#fff;font:inherit;font-size:.88rem}
+.field textarea{min-height:70px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{outline:0;border-color:var(--blue-l)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#10141F;color:#fff;padding:11px 18px;border-radius:9px;font-size:.85rem;z-index:600;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.toast.warn{background:#9A5B0E}.toast.danger{background:#A32D2D}.toast.ok{background:#15803D}
+.empty{color:var(--muted2);font-size:.86rem;padding:8px 2px}
+/* login */
+#login{position:fixed;inset:0;z-index:1000;background:radial-gradient(120% 90% at 85% -10%,#16224A,rgba(11,14,22,0) 55%),radial-gradient(90% 80% at 0% 110%,#1B1740,rgba(11,14,22,0) 50%),var(--bg);display:flex;align-items:center;justify-content:center;padding:22px}
+#login .box{width:100%;max-width:400px}#login .head{text-align:center;margin-bottom:20px}
+#login .logo{display:inline-flex;align-items:center;gap:10px;margin-bottom:14px}#login .logo img{height:34px;animation:vzpulse 2.8s ease-in-out infinite}
+#login .logo .wm{font-weight:800;letter-spacing:.2em;font-size:1.1rem;color:#fff}#login .logo small{display:block;color:var(--muted2);font-size:.58rem;letter-spacing:.12em}
+#login h1{font-size:1.3rem;color:#fff}#login .head p{color:var(--muted);font-size:.88rem;margin-top:5px}
+#login .card-l{background:rgba(20,26,38,.86);border:1px solid var(--border);border-radius:15px;padding:22px;backdrop-filter:blur(8px)}
+#login label{display:block;font-size:.78rem;color:var(--muted);font-weight:600;margin-bottom:5px}#login .field{margin-bottom:12px}
+#login input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:11px 12px;color:#fff;font:inherit}
+#login input:focus{outline:0;border-color:var(--blue-l);box-shadow:0 0 0 3px var(--soft)}
+#login .enter{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:12px;font:inherit;font-weight:700;cursor:pointer;margin-top:3px}#login .enter:hover{background:var(--blue-d)}
+#login .sep{display:flex;align-items:center;gap:10px;color:var(--muted2);font-size:.74rem;margin:14px 0}#login .sep::before,#login .sep::after{content:"";flex:1;height:1px;background:var(--border2)}
+#login .create{width:100%;background:transparent;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:11px;font:inherit;font-weight:600;cursor:pointer}
+#login .err{color:#FCA5A5;font-size:.8rem;min-height:16px;margin:2px 0}#login .link{background:none;border:0;color:var(--blue-l);font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
+#login .foot-l{text-align:center;font-size:.72rem;color:var(--muted2);margin-top:16px}
+@media(max-width:920px){aside{display:none}main{padding:16px 14px 50px}.kpis{grid-template-columns:repeat(2,1fr)}.grid2,.fgrid{grid-template-columns:1fr}.pipe{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="box">
+    <div class="head">
+      <div class="logo"><img src="vizio-symbol-light.png" alt="VIZIO"><div><span class="wm">VIZIO</span><small>CONSÓRCIO · COCKPIT</small></div></div>
+      <h1>Cockpit da Empresa</h1>
+      <p>Gestão completa: clientes, vendas, contratos e operação.</p>
+    </div>
+    <div class="card-l">
+      <div id="viewLogin">
+        <div class="field"><label>E-mail</label><input type="email" id="lgEmail" placeholder="voce@empresa.com.br"></div>
+        <div class="field"><label>Senha</label><input type="password" id="lgPass" placeholder="••••••••"></div>
+        <div class="err" id="lgErr"></div>
+        <button class="enter" onclick="APP.login()">Entrar</button>
+        <div style="text-align:right;margin-top:7px"><button class="link" onclick="APP.forgot()">Esqueci minha senha</button></div>
+        <div class="sep">ou</div>
+        <button class="create" onclick="APP.showSignup(true)">Criar conta / empresa</button>
+      </div>
+      <div id="viewSignup" class="hidden">
+        <div class="field"><label>Seu nome</label><input id="suNome"></div>
+        <div class="field"><label>Nome da empresa</label><input id="suEmpresa" placeholder="Ex.: Elite Consórcios"></div>
+        <div class="field"><label>E-mail</label><input type="email" id="suEmail"></div>
+        <div class="field"><label>Senha (mín. 6)</label><input type="password" id="suPass"></div>
+        <div class="err" id="suErr"></div>
+        <button class="enter" onclick="APP.signup()">Criar minha conta</button>
+        <div style="text-align:center;margin-top:9px"><button class="link" onclick="APP.showSignup(false)">Já tenho conta — entrar</button></div>
+      </div>
+    </div>
+    <div class="foot-l">Vizio Consórcio · Cockpit <b style="color:var(--muted)">by VIZIO</b> · um produto INPERSON</div>
+  </div>
+</div>
+
+<div class="app hidden" id="app">
+  <aside>
+    <div class="brand"><img src="vizio-symbol-light.png" alt="VIZIO"><div><span class="wm">VIZIO</span><small>CONSÓRCIO · COCKPIT</small></div></div>
+    <div class="orgname"><b id="orgNome">—</b><br><span id="orgPlano" style="font-size:.7rem;color:var(--muted2)"></span></div>
+    <div class="navsec">Comercial &amp; Cliente</div>
+    <nav class="menu" id="menu1"></nav>
+    <div class="navsec">Operação da empresa</div>
+    <nav class="menu" id="menu2"></nav>
+    <div class="side-foot">
+      <div class="who"><div class="avatar" id="uAv">—</div><div><b id="uNome">—</b><span id="uPapel" style="font-size:.72rem;color:var(--muted2)"></span></div></div>
+      <button class="logout" onclick="APP.logout()">Sair</button>
+    </div>
+  </aside>
+  <main><div id="view"></div>
+    <div style="margin-top:28px;padding-top:14px;border-top:1px solid var(--border2);color:var(--muted2);font-size:.76rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <span>Vizio Consórcio · Cockpit <b style="color:var(--muted)">by VIZIO</b> · Sua planilha virou software.</span><span>um produto INPERSON</span>
+    </div>
+  </main>
+</div>
+
+<script src="dados.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="consorcio-calc.js"></script>
+<script>
+window.APP=(function(){
+  "use strict";
+  var CFG=(typeof DADOS!=="undefined"&&DADOS._cfg)?DADOS._cfg:{};
+  var Calc=window.ConsorcioCalc, SB=null, UID=null, booted=false;
+  var S={user:null, member:null, org:null, config:null,
+    clientes:[], contratos:[], vendas:[], lancamentos:[], avisos:[], eventos:[], pausas:[], members:[]};
+  var MENU1=[
+    {id:"dashboard",nome:"Dashboard",ic:"📊"},
+    {id:"clientes",nome:"Clientes (CRM)",ic:"👥"},
+    {id:"vendas",nome:"Vendas",ic:"💼"},
+    {id:"contratos",nome:"Contratos",ic:"📄"},
+    {id:"produtividade",nome:"Produtividade",ic:"📈"},
+    {id:"recuperacao",nome:"Recuperação & Alavancagem",ic:"🚀"}
+  ];
+  var MENU2=[
+    {id:"financeiro",nome:"Financeiro",ic:"💰"},
+    {id:"calendario",nome:"Calendário",ic:"🗓️"},
+    {id:"mural",nome:"Mural de avisos",ic:"📌"},
+    {id:"aniversarios",nome:"Aniversários",ic:"🎂"},
+    {id:"bemestar",nome:"Bem-estar & Pausas",ic:"🧘"},
+    {id:"equipe",nome:"Equipe & Config",ic:"⚙️"}
+  ];
+
+  /* ---------- helpers ---------- */
+  function BRL(n){return "R$ "+(Number(n)||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function n0(n){return (Number(n)||0).toLocaleString("pt-BR");}
+  function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+  function ini(s){var p=String(s||"?").trim().split(/\s+/);return((p[0][0]||"?")+(p[1]?p[1][0]:"")).toUpperCase();}
+  function dBR(s){if(!s)return "—";var p=String(s).slice(0,10).split("-");return p.length===3?(p[2]+"/"+p[1]+"/"+p[0]):s;}
+  function today(){return new Date().toISOString().slice(0,10);}
+  function toast(m,k){var t=document.createElement("div");t.className="toast "+(k||"");t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.style.opacity="0";t.style.transition="opacity .4s";},2400);setTimeout(function(){t.remove();},2900);}
+  function v(id){var e=document.getElementById(id);return e?e.value:"";}
+  function isGestor(){return S.member&&(S.member.papel==="gestor"||S.member.papel==="admin");}
+  function memberNome(id){var m=S.members.find(function(x){return x.id===id;});return m?(m.nome||"—"):"—";}
+  function clienteNome(id){var c=S.clientes.find(function(x){return x.id===id;});return c?c.nome:"—";}
+
+  /* ---------- data layer (org-scoped) ---------- */
+  function tbl(t){return SB.from(t);}
+  function reload(t){ // reload one collection
+    return tbl("co_"+t).select("*").eq("org_id",S.org.id).then(function(r){ S[t]=r.data||[]; });
+  }
+  function loadAll(){
+    return Promise.all([
+      reload("members"),reload("clientes"),reload("contratos"),reload("vendas"),
+      reload("lancamentos"),reload("avisos"),reload("eventos"),reload("pausas")
+    ]);
+  }
+  function insert(t,obj){obj.org_id=S.org.id;return tbl("co_"+t).insert(obj).select().single();}
+  function update(t,id,obj){return tbl("co_"+t).update(obj).eq("id",id).select().single();}
+  function del(t,id){return tbl("co_"+t).delete().eq("id",id);}
+
+  /* ---------- nav ---------- */
+  function buildMenus(){
+    function html(arr){return arr.map(function(m){return '<button data-go="'+m.id+'" onclick="APP.go(\''+m.id+'\')"><span class="ic">'+m.ic+'</span>'+m.nome+'</button>';}).join("");}
+    document.getElementById("menu1").innerHTML=html(MENU1);
+    document.getElementById("menu2").innerHTML=html(MENU2);
+  }
+  function go(id){
+    S._cur=id;
+    document.querySelectorAll("#menu1 button,#menu2 button").forEach(function(b){b.classList.toggle("active",b.dataset.go===id);});
+    var R={dashboard:renderDashboard,clientes:renderClientes,vendas:renderVendas,contratos:renderContratos,
+      produtividade:renderProdutividade,recuperacao:renderRecuperacao,financeiro:renderFinanceiro,
+      calendario:renderCalendario,mural:renderMural,aniversarios:renderAniversarios,bemestar:renderBemestar,equipe:renderEquipe};
+    (R[id]||renderDashboard)();
+    window.scrollTo(0,0);
+  }
+  function topbar(t,p,btn){return '<div class="topbar"><div><h1>'+t+'</h1><p>'+p+'</p></div>'+(btn||"")+'</div>';}
+  function kpi(l,val,s,cls){return '<div class="kpi '+(cls||"")+'"><div class="lab">'+l+'</div><div class="val num">'+val+'</div><div class="sub">'+(s||"")+'</div></div>';}
+
+  /* ================= DASHBOARD ================= */
+  function mes(d){return String(d||"").slice(0,7);}
+  function renderDashboard(){
+    var mesAtual=today().slice(0,7);
+    var fechadasMes=S.vendas.filter(function(x){return x.etapa==="fechado"&&mes(x.data_fechamento)===mesAtual;});
+    var creditoMes=fechadasMes.reduce(function(s,x){return s+(Number(x.valor_credito)||0);},0);
+    var pipeAberto=S.vendas.filter(function(x){return x.etapa!=="fechado"&&x.etapa!=="perdido";});
+    var pipeValor=pipeAberto.reduce(function(s,x){return s+(Number(x.valor_credito)||0);},0);
+    var ativos=S.contratos.filter(function(c){return c.status==="andamento"||c.status==="contemplado";});
+    var contemplados=S.contratos.filter(function(c){return c.contemplado||c.status==="contemplado";});
+    var recMes=S.lancamentos.filter(function(l){return l.tipo==="receita"&&mes(l.data)===mesAtual;}).reduce(function(s,l){return s+(Number(l.valor)||0);},0);
+    var despMes=S.lancamentos.filter(function(l){return l.tipo==="despesa"&&mes(l.data)===mesAtual;}).reduce(function(s,l){return s+(Number(l.valor)||0);},0);
+    var meta=(S.config&&Number(S.config.meta_mensal_credito))||0;
+    var pctMeta=meta>0?Math.min(100,Math.round(creditoMes/meta*100)):0;
+    var view=document.getElementById("view");
+    var alertas=buildAlertasHome();
+    view.innerHTML=topbar("Dashboard","Visão de decisão — "+new Date().toLocaleDateString("pt-BR",{month:"long",year:"numeric"})+".","")+
+      '<div class="kpis">'+
+        kpi("Crédito vendido (mês)",BRL(creditoMes),fechadasMes.length+" negócio(s) fechado(s)","accent")+
+        kpi("Pipeline aberto",BRL(pipeValor),pipeAberto.length+" oportunidade(s)","")+
+        kpi("Clientes ativos",n0(S.clientes.length),ativos.length+" contrato(s) ativos","")+
+        kpi("Resultado do mês",BRL(recMes-despMes),"rec "+BRL(recMes)+" · desp "+BRL(despMes),"")+
+      '</div>'+
+      '<div class="grid2"><div>'+
+        '<div class="card"><h2>Meta do mês</h2><div class="csub">Crédito vendido vs. meta.</div>'+
+          (meta>0?('<div style="display:flex;align-items:center;gap:12px"><div class="bar" style="flex:1;height:12px"><i style="width:'+pctMeta+'%"></i></div><b class="num" style="color:#fff">'+pctMeta+'%</b></div>'+
+          '<div style="color:var(--muted);font-size:.82rem;margin-top:6px">'+BRL(creditoMes)+' de '+BRL(meta)+'</div>')
+          :'<div class="empty">Defina a meta mensal em <b>Equipe &amp; Config</b>.</div>')+'</div>'+
+        '<div class="card"><h2>Contratos por status</h2><div class="csub">Carteira sob gestão.</div>'+statusResumo()+'</div>'+
+      '</div><div>'+
+        '<div class="card"><h2>Precisa de atenção</h2><div class="csub">O que decidir agora.</div>'+(alertas||'<div class="empty">Tudo em ordem 👌</div>')+'</div>'+
+        '<div class="card" style="background:linear-gradient(150% 130% at 85% 0%,#16224A,#141A26 60%);border-color:#26407F"><h2>Contemplações</h2><div class="csub">Momentos de conquista dos clientes.</div><div style="font-size:1.6rem;font-weight:800;color:#fff" class="num">'+contemplados.length+'</div><div style="color:var(--muted);font-size:.82rem">cliente(s) contemplado(s) — envie o alerta 🎉</div></div>'+
+      '</div></div>';
+  }
+  function statusResumo(){
+    var g={andamento:0,contemplado:0,quitado:0,cancelado:0};
+    S.contratos.forEach(function(c){g[c.status]=(g[c.status]||0)+1;});
+    var row=function(l,v,cls){return '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border2)"><span class="badge '+cls+'">'+l+'</span><b class="num">'+v+'</b></div>';};
+    return row("Em andamento",g.andamento,"b-blue")+row("Contemplado",g.contemplado,"b-ok")+row("Quitado",g.quitado,"b-vio")+row("Cancelado",g.cancelado,"b-rose");
+  }
+  function buildAlertasHome(){
+    var out="";
+    S.contratos.filter(function(c){return c.contemplado&&c.status==="contemplado";}).slice(0,3).forEach(function(c){
+      out+=alertItem("🎉","Contemplação — "+clienteNome(c.cliente_id),(c.administradora||"")+" · gere o link e envie a mensagem.","vio");
+    });
+    var hoje=today().slice(5);
+    S.clientes.filter(function(c){return c.data_nascimento&&String(c.data_nascimento).slice(5)===hoje;}).slice(0,3).forEach(function(c){
+      out+=alertItem("🎂","Aniversário hoje — "+c.nome,"Mande os parabéns e fortaleça o relacionamento.","blue");
+    });
+    S.vendas.filter(function(x){return x.etapa==="negociacao";}).slice(0,3).forEach(function(x){
+      out+=alertItem("🔥","Em negociação — "+(x.titulo||clienteNome(x.cliente_id)),BRL(x.valor_credito)+" · empurre para o fechamento.","warn");
+    });
+    return out;
+  }
+  function alertItem(ic,t,s,cls){var c={vio:"var(--vio)",blue:"var(--blue)",warn:"var(--warn)"}[cls]||"var(--blue)";
+    return '<div style="display:flex;gap:9px;padding:9px 10px;border-radius:9px;margin-bottom:7px;border:1px solid var(--border);border-left:3px solid '+c+';background:var(--surface2)"><div style="font-size:1.05rem">'+ic+'</div><div><b style="color:#fff;font-size:.84rem">'+esc(t)+'</b><br><span style="color:var(--muted);font-size:.78rem">'+esc(s)+'</span></div></div>';}
+
+  /* ================= CLIENTES ================= */
+  function renderClientes(){
+    var q=(S._qcli||"").toLowerCase();
+    var lista=S.clientes.filter(function(c){return !q||((c.nome||"")+(c.telefone||"")+(c.cidade||"")).toLowerCase().indexOf(q)>=0;});
+    document.getElementById("view").innerHTML=topbar("Clientes (CRM)","Sua base de clientes e relacionamento.",'<button class="btn" onclick="APP.formCliente()">＋ Novo cliente</button>')+
+      '<div class="card"><div class="tools"><input placeholder="Buscar por nome, telefone, cidade..." value="'+esc(S._qcli||"")+'" oninput="APP.qcli(this.value)"><span class="pill">'+lista.length+' cliente(s)</span></div>'+
+      '<table><thead><tr><th>Cliente</th><th>Telefone</th><th>Cidade</th><th>Contratos</th><th>Consultor</th><th></th></tr></thead><tbody>'+
+      (lista.length?lista.map(function(c){
+        var nc=S.contratos.filter(function(x){return x.cliente_id===c.id;}).length;
+        return '<tr class="clk" onclick="APP.formCliente(\''+c.id+'\')"><td><div class="person"><div class="avatar-s">'+ini(c.nome)+'</div><div><b>'+esc(c.nome)+'</b><span>'+esc(c.email||c.origem||"")+'</span></div></div></td>'+
+          '<td>'+esc(c.telefone||"—")+'</td><td>'+esc(c.cidade||"—")+'</td><td class="num">'+nc+'</td><td>'+esc(memberNome(c.consultor_id))+'</td>'+
+          '<td onclick="event.stopPropagation()"><button class="act" title="Excluir" onclick="APP.delCliente(\''+c.id+'\')">🗑</button></td></tr>';
+      }).join(""):'<tr><td colspan="6" class="empty">Nenhum cliente. Clique em <b>Novo cliente</b>.</td></tr>')+'</tbody></table></div>';
+  }
+  function qcli(x){S._qcli=x;renderClientes();}
+  function formCliente(id){
+    var c=id?S.clientes.find(function(x){return x.id===id;}):{};
+    var opts=S.members.map(function(m){return '<option value="'+m.id+'"'+(m.id===c.consultor_id?" selected":"")+'>'+esc(m.nome||"—")+'</option>';}).join("");
+    modal((id?"Editar cliente":"Novo cliente"),
+      '<div class="fgrid"><div class="field"><label>Nome *</label><input id="c_nome" value="'+esc(c.nome||"")+'"></div><div class="field"><label>Telefone</label><input id="c_tel" value="'+esc(c.telefone||"")+'"></div></div>'+
+      '<div class="fgrid"><div class="field"><label>E-mail</label><input id="c_email" value="'+esc(c.email||"")+'"></div><div class="field"><label>CPF</label><input id="c_cpf" value="'+esc(c.cpf||"")+'"></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Cidade</label><input id="c_cidade" value="'+esc(c.cidade||"")+'"></div><div class="field"><label>Nascimento</label><input id="c_nasc" type="date" value="'+esc(c.data_nascimento||"")+'"></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Origem</label><input id="c_origem" value="'+esc(c.origem||"")+'" placeholder="Indicação, Instagram..."></div><div class="field"><label>Consultor</label><select id="c_cons"><option value="">—</option>'+opts+'</select></div></div>'+
+      '<div class="field"><label>Observações</label><textarea id="c_obs">'+esc(c.obs||"")+'</textarea></div>',
+      function(){
+        var nome=v("c_nome").trim(); if(!nome){toast("Informe o nome.","warn");return false;}
+        var obj={nome:nome,telefone:v("c_tel")||null,email:v("c_email")||null,cpf:v("c_cpf")||null,cidade:v("c_cidade")||null,
+          data_nascimento:v("c_nasc")||null,origem:v("c_origem")||null,consultor_id:v("c_cons")||null,obs:v("c_obs")||null};
+        var p=id?update("clientes",id,obj):insert("clientes",obj);
+        p.then(function(r){if(r.error){toast("Erro: "+r.error.message,"danger");return;} reload("clientes").then(function(){closeModal();toast(id?"Cliente atualizado.":"Cliente criado.","ok");renderClientes();});});
+        return false;
+      });
+  }
+  function delCliente(id){if(!confirm("Excluir cliente e seus contratos?"))return;del("clientes",id).then(function(){Promise.all([reload("clientes"),reload("contratos")]).then(function(){toast("Excluído.","ok");renderClientes();});});}
+
+  /* ================= VENDAS (pipeline) ================= */
+  var ETAPAS=[["lead","Lead"],["contato","Contato"],["proposta","Proposta"],["negociacao","Negociação"],["fechado","Fechado"],["perdido","Perdido"]];
+  function renderVendas(){
+    var cols=ETAPAS.map(function(e){
+      var itens=S.vendas.filter(function(x){return x.etapa===e[0];});
+      var tot=itens.reduce(function(s,x){return s+(Number(x.valor_credito)||0);},0);
+      return '<div class="pcol"><h4><span>'+e[1]+'</span><span class="num">'+itens.length+'</span></h4>'+
+        itens.map(function(x){return '<div class="pcard" onclick="APP.formVenda(\''+x.id+'\')"><b>'+esc(x.titulo||clienteNome(x.cliente_id))+'</b><span>'+BRL(x.valor_credito)+' · '+esc(memberNome(x.consultor_id))+'</span></div>';}).join("")+
+        '<div style="color:var(--muted2);font-size:.72rem;margin-top:4px">'+BRL(tot)+'</div></div>';
+    }).join("");
+    document.getElementById("view").innerHTML=topbar("Vendas","Gerenciador de vendas — arraste seu funil até o fechamento.",'<button class="btn" onclick="APP.formVenda()">＋ Nova oportunidade</button>')+
+      '<div class="pipe">'+cols+'</div>';
+  }
+  function formVenda(id){
+    var x=id?S.vendas.find(function(v){return v.id===id;}):{etapa:"lead"};
+    var optC=S.clientes.map(function(c){return '<option value="'+c.id+'"'+(c.id===x.cliente_id?" selected":"")+'>'+esc(c.nome)+'</option>';}).join("");
+    var optM=S.members.map(function(m){return '<option value="'+m.id+'"'+(m.id===x.consultor_id?" selected":"")+'>'+esc(m.nome||"—")+'</option>';}).join("");
+    var optE=ETAPAS.map(function(e){return '<option value="'+e[0]+'"'+(e[0]===x.etapa?" selected":"")+'>'+e[1]+'</option>';}).join("");
+    modal((id?"Editar oportunidade":"Nova oportunidade"),
+      '<div class="field"><label>Título</label><input id="v_tit" value="'+esc(x.titulo||"")+'" placeholder="Ex.: Consórcio imóvel 200k"></div>'+
+      '<div class="fgrid"><div class="field"><label>Cliente</label><select id="v_cli"><option value="">—</option>'+optC+'</select></div><div class="field"><label>Consultor</label><select id="v_cons"><option value="">—</option>'+optM+'</select></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Etapa</label><select id="v_etapa">'+optE+'</select></div><div class="field"><label>Valor do crédito (R$)</label><input id="v_val" type="number" step="0.01" value="'+(x.valor_credito||"")+'"></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Comissão (R$)</label><input id="v_com" type="number" step="0.01" value="'+(x.comissao||"")+'"></div><div class="field"><label>Previsão de fechamento</label><input id="v_prev" type="date" value="'+esc(x.data_prevista||"")+'"></div></div>'+
+      '<div class="field"><label>Observações</label><textarea id="v_obs">'+esc(x.obs||"")+'</textarea></div>',
+      function(){
+        var et=v("v_etapa");
+        var obj={titulo:v("v_tit")||null,cliente_id:v("v_cli")||null,consultor_id:v("v_cons")||null,etapa:et,
+          valor_credito:Number(v("v_val"))||0,comissao:Number(v("v_com"))||0,data_prevista:v("v_prev")||null,obs:v("v_obs")||null,
+          data_fechamento: et==="fechado" ? (x.data_fechamento||today()) : null};
+        var p=id?update("vendas",id,obj):insert("vendas",obj);
+        p.then(function(r){if(r.error){toast("Erro: "+r.error.message,"danger");return;}reload("vendas").then(function(){closeModal();toast("Salvo.","ok");renderVendas();});});
+        return false;
+      }, id?'<button class="btn ghost sm" onclick="APP.delVenda(\''+id+'\')">Excluir</button>':"");
+  }
+  function delVenda(id){del("vendas",id).then(function(){reload("vendas").then(function(){closeModal();toast("Excluído.","ok");renderVendas();});});}
+
+  /* ================= CONTRATOS ================= */
+  function parcelaContrato(c){
+    if(c.tipo==="consorcio"){try{return Calc.parcelaBase({valor_carta:c.valor_credito,prazo_meses:c.prazo_meses,taxa_adm_pct:c.taxa_adm_pct,fundo_reserva_pct:c.fundo_reserva_pct,seguro_mensal:c.seguro_mensal});}catch(e){return 0;}}
+    // financiamento PRICE
+    var i=(Number(c.taxa_juros_pct)||0)/100, nn=Number(c.prazo_meses)||0, V=Number(c.valor_credito)||0;
+    if(nn<=0)return 0; if(i<=0)return Math.round(V/nn*100)/100;
+    return Math.round(V*i/(1-Math.pow(1+i,-nn))*100)/100;
+  }
+  function renderContratos(){
+    var q=(S._qcon||"").toLowerCase();
+    var lista=S.contratos.filter(function(c){return !q||((clienteNome(c.cliente_id))+(c.administradora||"")).toLowerCase().indexOf(q)>=0;});
+    document.getElementById("view").innerHTML=topbar("Contratos","Consórcios e financiamentos dos seus clientes.",'<button class="btn" onclick="APP.formContrato()">＋ Novo contrato</button>')+
+      '<div class="card"><div class="tools"><input placeholder="Buscar cliente/administradora..." value="'+esc(S._qcon||"")+'" oninput="APP.qcon(this.value)"><span class="pill">'+lista.length+' contrato(s)</span></div>'+
+      '<table><thead><tr><th>Cliente</th><th>Tipo</th><th>Administradora</th><th>Crédito</th><th>Parcela</th><th>Status</th><th></th></tr></thead><tbody>'+
+      (lista.length?lista.map(function(c){
+        var badge=c.contemplado?'<span class="badge b-ok">Contemplado</span>':c.status==="quitado"?'<span class="badge b-vio">Quitado</span>':c.status==="cancelado"?'<span class="badge b-rose">Cancelado</span>':'<span class="badge b-blue">Em andamento</span>';
+        return '<tr class="clk" onclick="APP.formContrato(\''+c.id+'\')"><td><div class="person"><div class="avatar-s">'+ini(clienteNome(c.cliente_id))+'</div><div><b>'+esc(clienteNome(c.cliente_id))+'</b><span>'+esc((c.bem||"")+" "+(c.grupo?("· G"+c.grupo):""))+'</span></div></div></td>'+
+          '<td><span class="badge '+(c.tipo==="consorcio"?"b-blue":"b-warn")+'">'+(c.tipo==="consorcio"?"Consórcio":"Financ.")+'</span></td><td>'+esc(c.administradora||"—")+'</td>'+
+          '<td class="num">'+BRL(c.valor_credito)+'</td><td class="num">'+BRL(parcelaContrato(c))+'</td><td>'+badge+'</td>'+
+          '<td onclick="event.stopPropagation()"><button class="act" title="Link do cliente" onclick="APP.portalLink(\''+c.id+'\')">🔗</button></td></tr>';
+      }).join(""):'<tr><td colspan="7" class="empty">Nenhum contrato ainda.</td></tr>')+'</tbody></table></div>';
+  }
+  function qcon(x){S._qcon=x;renderContratos();}
+  function formContrato(id){
+    var c=id?S.contratos.find(function(x){return x.id===id;}):{tipo:"consorcio",indice_reajuste:"INCC",sistema:"SAC",status:"andamento"};
+    var optC=S.clientes.map(function(x){return '<option value="'+x.id+'"'+(x.id===c.cliente_id?" selected":"")+'>'+esc(x.nome)+'</option>';}).join("");
+    modal((id?"Editar contrato":"Novo contrato"),
+      '<div class="fgrid"><div class="field"><label>Cliente *</label><select id="k_cli"><option value="">—</option>'+optC+'</select></div>'+
+      '<div class="field"><label>Tipo</label><select id="k_tipo"><option value="consorcio"'+(c.tipo==="consorcio"?" selected":"")+'>Consórcio</option><option value="financiamento"'+(c.tipo==="financiamento"?" selected":"")+'>Financiamento</option></select></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Administradora / Banco</label><input id="k_adm" value="'+esc(c.administradora||"")+'"></div><div class="field"><label>Bem</label><input id="k_bem" value="'+esc(c.bem||"")+'" placeholder="Imóvel, Automóvel..."></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Grupo</label><input id="k_grupo" value="'+esc(c.grupo||"")+'"></div><div class="field"><label>Cota</label><input id="k_cota" value="'+esc(c.cota||"")+'"></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Valor do crédito (R$) *</label><input id="k_val" type="number" step="0.01" value="'+(c.valor_credito||"")+'"></div><div class="field"><label>Prazo (meses)</label><input id="k_prazo" type="number" value="'+(c.prazo_meses||"")+'"></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Taxa adm. (%) / Juros a.m. (%)</label><input id="k_taxa" type="number" step="0.001" value="'+(c.taxa_adm_pct||c.taxa_juros_pct||"")+'"></div><div class="field"><label>Fundo reserva (%)</label><input id="k_fr" type="number" step="0.001" value="'+(c.fundo_reserva_pct||"")+'"></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Adesão</label><input id="k_ades" type="date" value="'+esc(c.data_adesao||"")+'"></div><div class="field"><label>Status</label><select id="k_status"><option value="andamento"'+(c.status==="andamento"?" selected":"")+'>Em andamento</option><option value="quitado"'+(c.status==="quitado"?" selected":"")+'>Quitado</option><option value="cancelado"'+(c.status==="cancelado"?" selected":"")+'>Cancelado</option></select></div></div>'+
+      '<label style="display:flex;gap:8px;align-items:center;font-size:.85rem;color:var(--text);margin:4px 0"><input type="checkbox" id="k_cont" '+(c.contemplado?"checked":"")+' style="width:auto"> 🎉 Cliente contemplado</label>',
+      function(){
+        var cli=v("k_cli"); if(!cli){toast("Selecione o cliente.","warn");return false;}
+        var val=Number(v("k_val")); if(!(val>0)){toast("Informe o crédito.","warn");return false;}
+        var tipo=v("k_tipo"), taxa=Number(v("k_taxa"))||0, cont=document.getElementById("k_cont").checked;
+        var obj={cliente_id:cli,tipo:tipo,administradora:v("k_adm")||null,bem:v("k_bem")||null,grupo:v("k_grupo")||null,cota:v("k_cota")||null,
+          valor_credito:val,prazo_meses:parseInt(v("k_prazo"))||null,fundo_reserva_pct:Number(v("k_fr"))||0,
+          data_adesao:v("k_ades")||null,contemplado:cont,status:cont?"contemplado":v("k_status"),
+          data_contemplacao: cont ? (c.data_contemplacao||today()) : null};
+        if(tipo==="consorcio"){obj.taxa_adm_pct=taxa;obj.taxa_juros_pct=0;}else{obj.taxa_juros_pct=taxa;obj.taxa_adm_pct=0;}
+        obj.parcela_base=parcelaContrato(Object.assign({},c,obj));
+        var p=id?update("contratos",id,obj):insert("contratos",obj);
+        p.then(function(r){if(r.error){toast("Erro: "+r.error.message,"danger");return;}reload("contratos").then(function(){closeModal();toast("Contrato salvo.","ok");renderContratos();});});
+        return false;
+      }, id?'<button class="btn ghost sm" onclick="APP.portalLink(\''+id+'\')">🔗 Link do cliente</button>':"");
+  }
+  function portalLink(id){
+    var c=S.contratos.find(function(x){return x.id===id;}); if(!c){return;}
+    // reusa token existente ou cria
+    var token=(c._token)||(Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)).slice(0,24);
+    SB.from("co_portal_links").upsert({token:token,org_id:S.org.id,contrato_id:id,ativo:true},{onConflict:"token"}).then(function(){
+      c._token=token;
+      var url=location.origin+location.pathname.replace(/cockpit\.html$/,"")+"portal.html?t="+token;
+      modal("Link de acompanhamento do cliente",
+        '<p style="color:var(--muted);font-size:.86rem;margin-bottom:10px">Envie este link para <b style="color:#fff">'+esc(clienteNome(c.cliente_id))+'</b>. Ele acompanha o processo em tempo real e recebe o aviso de contemplação com uma mensagem de apoio.</p>'+
+        '<div class="field"><label>Link</label><input id="pl_url" value="'+esc(url)+'" readonly onclick="this.select()"></div>'+
+        '<button class="btn" onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById(\'pl_url\').value);APP.toast(\'Link copiado!\',\'ok\')">📋 Copiar link</button> '+
+        '<a class="btn ghost" href="'+esc(url)+'" target="_blank">Abrir portal</a>',
+        null);
+    });
+  }
+
+  /* ================= PRODUTIVIDADE ================= */
+  function renderProdutividade(){
+    var mesAtual=today().slice(0,7);
+    var byCons={};
+    S.members.forEach(function(m){byCons[m.id]={nome:m.nome||"—",fech:0,cred:0,com:0,pipe:0};});
+    S.vendas.forEach(function(x){
+      var b=byCons[x.consultor_id]; if(!b)return;
+      if(x.etapa==="fechado"){b.fech++;b.cred+=Number(x.valor_credito)||0;b.com+=Number(x.comissao)||0;}
+      else if(x.etapa!=="perdido"){b.pipe+=Number(x.valor_credito)||0;}
+    });
+    var rows=Object.keys(byCons).map(function(k){var b=byCons[k];return {nome:b.nome,fech:b.fech,cred:b.cred,com:b.com,pipe:b.pipe};}).sort(function(a,b){return b.cred-a.cred;});
+    // comparativo mensal (últimos 6 meses) — crédito fechado
+    var meses=[]; var d=new Date();
+    for(var i=5;i>=0;i--){var dd=new Date(d.getFullYear(),d.getMonth()-i,1);meses.push(dd.toISOString().slice(0,7));}
+    var serie=meses.map(function(m){return S.vendas.filter(function(x){return x.etapa==="fechado"&&mes(x.data_fechamento)===m;}).reduce(function(s,x){return s+(Number(x.valor_credito)||0);},0);});
+    var maxv=Math.max.apply(null,serie.concat([1]));
+    document.getElementById("view").innerHTML=topbar("Produtividade","Comparativo de vendas, crédito e negócios fechados.","")+
+      '<div class="card"><h2>Crédito vendido — últimos 6 meses</h2><div class="csub">Evolução mês a mês.</div>'+
+        '<div style="display:flex;align-items:flex-end;gap:12px;height:150px;padding-top:8px">'+
+        meses.map(function(m,idx){var h=Math.round(serie[idx]/maxv*130);return '<div style="flex:1;text-align:center"><div style="height:130px;display:flex;align-items:flex-end"><div style="width:100%;background:linear-gradient(180deg,#3C94FC,#2563EB);border-radius:6px 6px 0 0;height:'+Math.max(3,h)+'px"></div></div><div style="font-size:.7rem;color:var(--muted2);margin-top:5px">'+m.slice(5)+"/"+m.slice(2,4)+'</div><div style="font-size:.7rem;color:var(--muted)">'+(serie[idx]>=1000?(Math.round(serie[idx]/1000)+"k"):serie[idx])+'</div></div>';}).join("")+
+        '</div></div>'+
+      '<div class="card"><h2>Ranking da equipe (mês corrente e geral)</h2><div class="csub">Quem está performando.</div>'+
+        '<table><thead><tr><th>Consultor</th><th>Fechados</th><th>Crédito vendido</th><th>Comissão</th><th>Pipeline aberto</th></tr></thead><tbody>'+
+        (rows.length?rows.map(function(r){return '<tr><td><div class="person"><div class="avatar-s">'+ini(r.nome)+'</div><b>'+esc(r.nome)+'</b></div></td><td class="num">'+r.fech+'</td><td class="num">'+BRL(r.cred)+'</td><td class="num">'+BRL(r.com)+'</td><td class="num">'+BRL(r.pipe)+'</td></tr>';}).join(""):'<tr><td colspan="5" class="empty">Sem dados ainda.</td></tr>')+'</tbody></table></div>';
+  }
+
+  /* ================= RECUPERAÇÃO & ALAVANCAGEM ================= */
+  function renderRecuperacao(){
+    var perdidas=S.vendas.filter(function(x){return x.etapa==="perdido";});
+    var frios=S.vendas.filter(function(x){return x.etapa==="lead"||x.etapa==="contato";});
+    var contemplados=S.contratos.filter(function(c){return c.contemplado;});
+    var semContrato=S.clientes.filter(function(c){return !S.contratos.some(function(k){return k.cliente_id===c.id;});});
+    document.getElementById("view").innerHTML=topbar("Recuperação & Alavancagem","Reative oportunidades e multiplique a carteira.","")+
+      '<div class="kpis">'+
+        kpi("Vendas perdidas",perdidas.length,"reative com nova abordagem","")+
+        kpi("Leads frios",frios.length,"precisam de follow-up","")+
+        kpi("Clientes sem contrato",semContrato.length,"oportunidade de 1ª venda","")+
+        kpi("Base p/ indicação",contemplados.length,"contemplados = prova social","accent")+
+      '</div>'+
+      '<div class="grid2"><div class="card"><h2>♻️ Recuperação de receita</h2><div class="csub">Quem vale um novo contato agora.</div>'+
+        (perdidas.concat(frios).slice(0,8).length?perdidas.concat(frios).slice(0,8).map(function(x){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border2)"><div class="person"><div class="avatar-s">'+ini(x.titulo||clienteNome(x.cliente_id))+'</div><div><b>'+esc(x.titulo||clienteNome(x.cliente_id))+'</b><span>'+esc(x.etapa)+' · '+BRL(x.valor_credito)+'</span></div></div><button class="btn ghost sm" onclick="APP.go(\'vendas\')">Reabrir</button></div>';}).join(""):'<div class="empty">Sem oportunidades frias no momento. 👏</div>')+'</div>'+
+      '<div class="card"><h2>🚀 Máquina de vendas</h2><div class="csub">Jogadas de alavancagem para esta semana.</div>'+
+        '<div style="display:grid;gap:9px">'+
+        playbook("Peça indicação aos contemplados","Cliente contemplado está no auge da satisfação — o melhor momento para pedir 2 indicações qualificadas.",contemplados.length+" contemplado(s)")+
+        playbook("Reative leads frios","Follow-up com oferta/simulação nova para "+frios.length+" leads parados.",frios.length+" lead(s)")+
+        playbook("1ª venda para a base","Ofereça consórcio para "+semContrato.length+" clientes que ainda não têm contrato.",semContrato.length+" cliente(s)")+
+        playbook("Aniversariantes do mês","Contato de relacionamento vira porta para nova venda.","relacionamento")+
+        '</div></div></div>';
+  }
+  function playbook(t,d,tag){return '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 13px"><div style="display:flex;justify-content:space-between;gap:8px"><b style="color:#fff;font-size:.86rem">'+esc(t)+'</b><span class="pill">'+esc(tag)+'</span></div><div style="color:var(--muted);font-size:.8rem;margin-top:4px">'+esc(d)+'</div></div>';}
+
+  /* ================= FINANCEIRO ================= */
+  function renderFinanceiro(){
+    var mesAtual=today().slice(0,7);
+    var doMes=S.lancamentos.filter(function(l){return mes(l.data)===mesAtual;});
+    var rec=doMes.filter(function(l){return l.tipo==="receita";}).reduce(function(s,l){return s+(+l.valor||0);},0);
+    var desp=doMes.filter(function(l){return l.tipo==="despesa";}).reduce(function(s,l){return s+(+l.valor||0);},0);
+    var lista=S.lancamentos.slice().sort(function(a,b){return (b.data||"").localeCompare(a.data||"");}).slice(0,40);
+    document.getElementById("view").innerHTML=topbar("Financeiro","Receitas, despesas e comissões.",'<button class="btn" onclick="APP.formLanc()">＋ Lançamento</button>')+
+      '<div class="kpis">'+kpi("Receitas (mês)",BRL(rec),"","accent")+kpi("Despesas (mês)",BRL(desp),"","")+kpi("Saldo (mês)",BRL(rec-desp),"","")+kpi("Lançamentos",n0(S.lancamentos.length),"total","")+'</div>'+
+      '<div class="card"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th></th></tr></thead><tbody>'+
+      (lista.length?lista.map(function(l){return '<tr><td>'+dBR(l.data)+'</td><td>'+esc(l.descricao||"—")+'</td><td>'+esc(l.categoria||"—")+'</td><td><span class="badge '+(l.tipo==="receita"?"b-ok":"b-rose")+'">'+l.tipo+'</span></td><td class="num">'+BRL(l.valor)+'</td><td><button class="act" onclick="APP.delLanc(\''+l.id+'\')">🗑</button></td></tr>';}).join(""):'<tr><td colspan="6" class="empty">Nenhum lançamento.</td></tr>')+'</tbody></table></div>';
+  }
+  function formLanc(){
+    modal("Novo lançamento",
+      '<div class="fgrid"><div class="field"><label>Tipo</label><select id="l_tipo"><option value="receita">Receita</option><option value="despesa">Despesa</option></select></div><div class="field"><label>Valor (R$)</label><input id="l_val" type="number" step="0.01"></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Data</label><input id="l_data" type="date" value="'+today()+'"></div><div class="field"><label>Categoria</label><input id="l_cat" placeholder="Comissão, Marketing..."></div></div>'+
+      '<div class="field"><label>Descrição</label><input id="l_desc"></div>',
+      function(){var val=Number(v("l_val"));if(!(val>0)){toast("Informe o valor.","warn");return false;}
+        insert("lancamentos",{tipo:v("l_tipo"),valor:val,data:v("l_data")||today(),categoria:v("l_cat")||null,descricao:v("l_desc")||null}).then(function(r){if(r.error){toast("Erro: "+r.error.message,"danger");return;}reload("lancamentos").then(function(){closeModal();toast("Lançado.","ok");renderFinanceiro();});});return false;});
+  }
+  function delLanc(id){del("lancamentos",id).then(function(){reload("lancamentos").then(function(){toast("Excluído.","ok");renderFinanceiro();});});}
+
+  /* ================= CALENDÁRIO ================= */
+  function renderCalendario(){
+    var lista=S.eventos.slice().sort(function(a,b){return (a.data||"").localeCompare(b.data||"");});
+    var futuros=lista.filter(function(e){return (e.data||"")>=today();});
+    document.getElementById("view").innerHTML=topbar("Calendário organizacional","Reuniões, assembleias, tarefas e lembretes.",'<button class="btn" onclick="APP.formEvento()">＋ Novo evento</button>')+
+      '<div class="card"><h2>Próximos</h2><div class="csub">O que vem por aí.</div>'+
+      (futuros.length?futuros.map(function(e){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border2)"><div><b style="color:#fff">'+esc(e.titulo)+'</b><br><span style="color:var(--muted);font-size:.8rem">'+dBR(e.data)+(e.hora?(" · "+String(e.hora).slice(0,5)):"")+' · '+esc(e.tipo)+(e.cliente_id?(" · "+esc(clienteNome(e.cliente_id))):"")+'</span></div><button class="act" onclick="APP.delEvento(\''+e.id+'\')">🗑</button></div>';}).join(""):'<div class="empty">Nenhum evento futuro.</div>')+'</div>';
+  }
+  function formEvento(){
+    var optC=S.clientes.map(function(c){return '<option value="'+c.id+'">'+esc(c.nome)+'</option>';}).join("");
+    modal("Novo evento",
+      '<div class="field"><label>Título</label><input id="e_tit"></div>'+
+      '<div class="fgrid"><div class="field"><label>Tipo</label><select id="e_tipo"><option value="reuniao">Reunião</option><option value="assembleia">Assembleia</option><option value="tarefa">Tarefa</option><option value="lembrete">Lembrete</option></select></div><div class="field"><label>Cliente (opcional)</label><select id="e_cli"><option value="">—</option>'+optC+'</select></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Data</label><input id="e_data" type="date" value="'+today()+'"></div><div class="field"><label>Hora</label><input id="e_hora" type="time"></div></div>',
+      function(){var t=v("e_tit").trim();if(!t){toast("Informe o título.","warn");return false;}
+        insert("eventos",{titulo:t,tipo:v("e_tipo"),data:v("e_data")||null,hora:v("e_hora")||null,cliente_id:v("e_cli")||null}).then(function(r){if(r.error){toast("Erro: "+r.error.message,"danger");return;}reload("eventos").then(function(){closeModal();toast("Evento criado.","ok");renderCalendario();});});return false;});
+  }
+  function delEvento(id){del("eventos",id).then(function(){reload("eventos").then(function(){toast("Excluído.","ok");renderCalendario();});});}
+
+  /* ================= MURAL ================= */
+  function renderMural(){
+    var lista=S.avisos.slice().sort(function(a,b){return (b.fixado?1:0)-(a.fixado?1:0)||(b.created_at||"").localeCompare(a.created_at||"");});
+    document.getElementById("view").innerHTML=topbar("Mural de avisos","Comunicados internos da equipe.",'<button class="btn" onclick="APP.formAviso()">＋ Novo aviso</button>')+
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">'+
+      (lista.length?lista.map(function(a){return '<div class="card" style="margin:0'+(a.fixado?';border-color:#26407F':'')+'"><div style="display:flex;justify-content:space-between"><b style="color:#fff">'+(a.fixado?"📌 ":"")+esc(a.titulo)+'</b><button class="act" onclick="APP.delAviso(\''+a.id+'\')">🗑</button></div><div style="color:var(--text);font-size:.86rem;margin:8px 0;white-space:pre-wrap">'+esc(a.corpo||"")+'</div><div style="color:var(--muted2);font-size:.74rem">'+esc(a.autor||"")+' · '+dBR(a.created_at)+'</div></div>';}).join(""):'<div class="empty">Nenhum aviso.</div>')+'</div>';
+  }
+  function formAviso(){
+    modal("Novo aviso",
+      '<div class="field"><label>Título</label><input id="a_tit"></div>'+
+      '<div class="field"><label>Mensagem</label><textarea id="a_corpo"></textarea></div>'+
+      '<label style="display:flex;gap:8px;align-items:center;font-size:.85rem"><input type="checkbox" id="a_fix" style="width:auto"> Fixar no topo</label>',
+      function(){var t=v("a_tit").trim();if(!t){toast("Informe o título.","warn");return false;}
+        insert("avisos",{titulo:t,corpo:v("a_corpo")||null,autor:(S.member.nome||"Equipe"),fixado:document.getElementById("a_fix").checked}).then(function(r){if(r.error){toast("Erro: "+r.error.message,"danger");return;}reload("avisos").then(function(){closeModal();toast("Publicado.","ok");renderMural();});});return false;});
+  }
+  function delAviso(id){del("avisos",id).then(function(){reload("avisos").then(function(){toast("Excluído.","ok");renderMural();});});}
+
+  /* ================= ANIVERSÁRIOS ================= */
+  function renderAniversarios(){
+    var mesAtual=Number(today().slice(5,7));
+    var comData=S.clientes.filter(function(c){return c.data_nascimento;});
+    var doMes=comData.filter(function(c){return Number(String(c.data_nascimento).slice(5,7))===mesAtual;}).sort(function(a,b){return String(a.data_nascimento).slice(8)-String(b.data_nascimento).slice(8);});
+    var hoje=today().slice(5);
+    document.getElementById("view").innerHTML=topbar("Aniversários","Relacionamento que gera venda e fidelidade.","")+
+      '<div class="card"><h2>🎂 Aniversariantes deste mês ('+doMes.length+')</h2><div class="csub">Um contato no aniversário vale ouro.</div>'+
+      (doMes.length?'<table><thead><tr><th>Cliente</th><th>Dia</th><th>Telefone</th><th>Cidade</th></tr></thead><tbody>'+doMes.map(function(c){var hj=String(c.data_nascimento).slice(5)===hoje;return '<tr><td><div class="person"><div class="avatar-s">'+ini(c.nome)+'</div><b>'+esc(c.nome)+(hj?' <span class="badge b-ok">hoje 🎉</span>':"")+'</b></div></td><td class="num">'+String(c.data_nascimento).slice(8)+'/'+String(c.data_nascimento).slice(5,7)+'</td><td>'+esc(c.telefone||"—")+'</td><td>'+esc(c.cidade||"—")+'</td></tr>';}).join("")+'</tbody></table>':'<div class="empty">Nenhum aniversariante com data cadastrada neste mês. Cadastre a data de nascimento em Clientes.</div>')+'</div>';
+  }
+
+  /* ================= BEM-ESTAR & PAUSAS ================= */
+  function renderBemestar(){
+    var minhas=S.pausas.filter(function(p){return p.user_id===UID;});
+    var hoje=minhas.filter(function(p){return String(p.inicio).slice(0,10)===today();});
+    var abertaId=(hoje.find(function(p){return !p.fim;})||{}).id;
+    document.getElementById("view").innerHTML=topbar("Bem-estar & Pausas","Você passa o dia sentado atendendo — cuide do corpo e da mente.","")+
+      '<div class="kpis">'+kpi("Pausas hoje",hoje.length,"registradas","accent")+kpi("Sugestão","a cada 50min","levante e alongue","")+kpi("Hidratação","💧","beba água","")+kpi("Descanso visual","20-20-20","20s a cada 20min","")+'</div>'+
+      '<div class="grid2"><div class="card"><h2>Registrar pausa agora</h2><div class="csub">Um clique cuida de você e mede seu ritmo.</div>'+
+        '<div style="display:flex;gap:9px;flex-wrap:wrap">'+
+        ["pausa","alongamento","agua","descanso","almoco"].map(function(t){var lbl={pausa:"☕ Pausa",alongamento:"🧘 Alongar",agua:"💧 Água",descanso:"👀 Descanso",almoco:"🍽️ Almoço"}[t];return '<button class="btn ghost" onclick="APP.pausa(\''+t+'\')">'+lbl+'</button>';}).join("")+
+        '</div>'+(abertaId?'<div style="margin-top:12px"><button class="btn rose sm" onclick="APP.fimPausa(\''+abertaId+'\')">Encerrar pausa em andamento</button></div>':"")+'</div>'+
+      '<div class="card"><h2>Suas pausas de hoje</h2><div class="csub">Ritmo saudável = mais vendas no longo prazo.</div>'+
+        (hoje.length?hoje.map(function(p){return '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border2)"><span>'+esc(p.tipo)+'</span><span class="num" style="color:var(--muted)">'+String(p.inicio).slice(11,16)+(p.fim?("–"+String(p.fim).slice(11,16)):" · em curso")+'</span></div>';}).join(""):'<div class="empty">Nenhuma pausa hoje. Que tal começar? 🙂</div>')+'</div></div>';
+  }
+  function pausa(t){insert("pausas",{user_id:UID,tipo:t,inicio:new Date().toISOString()}).then(function(r){if(r.error){toast("Erro: "+r.error.message,"danger");return;}reload("pausas").then(function(){toast("Pausa registrada. Cuide-se 💙","ok");renderBemestar();});});}
+  function fimPausa(id){update("pausas",id,{fim:new Date().toISOString()}).then(function(){reload("pausas").then(function(){renderBemestar();});});}
+
+  /* ================= EQUIPE & CONFIG ================= */
+  function renderEquipe(){
+    var meta=(S.config&&S.config.meta_mensal_credito)||0;
+    document.getElementById("view").innerHTML=topbar("Equipe & Configurações","Sua empresa, sua equipe e suas metas.","")+
+      '<div class="card"><h2>Empresa</h2><div class="csub">Dados e meta.</div>'+
+        '<div class="fgrid"><div class="field"><label>Nome da empresa</label><input id="cf_nome" value="'+esc((S.config&&S.config.nome_empresa)||S.org.nome||"")+'"></div><div class="field"><label>Meta mensal de crédito (R$)</label><input id="cf_meta" type="number" step="0.01" value="'+(meta||"")+'"></div></div>'+
+        '<button class="btn" onclick="APP.saveConfig()">Salvar</button></div>'+
+      '<div class="card"><h2>Equipe ('+S.members.length+')</h2><div class="csub">Quem tem acesso ao cockpit.'+(isGestor()?' Convide informando o e-mail de quem já criou conta.':'')+'</div>'+
+        '<table><thead><tr><th>Membro</th><th>Papel</th></tr></thead><tbody>'+
+        S.members.map(function(m){return '<tr><td><div class="person"><div class="avatar-s">'+ini(m.nome)+'</div><b>'+esc(m.nome||"—")+'</b></div></td><td><span class="badge b-blue">'+esc(m.papel)+'</span></td></tr>';}).join("")+'</tbody></table>'+
+        (isGestor()?'<div style="margin-top:10px"><span class="pill">Convite de novos membros: em breve (v1.1)</span></div>':'')+'</div>';
+  }
+  function saveConfig(){
+    var obj={org_id:S.org.id,nome_empresa:v("cf_nome")||null,meta_mensal_credito:Number(v("cf_meta"))||0};
+    SB.from("co_config").upsert(obj,{onConflict:"org_id"}).then(function(r){if(r.error){toast("Erro: "+r.error.message,"danger");return;}S.config=Object.assign(S.config||{},obj);toast("Salvo.","ok");renderEquipe();});
+  }
+
+  /* ---------- modal infra ---------- */
+  function modal(title,body,onSave,extraFoot){
+    var ovl=document.createElement("div");ovl.className="ovl";ovl.id="mOvl";
+    ovl.innerHTML='<div class="modal"><h3>'+title+'</h3><div class="body">'+body+'</div><div class="foot2">'+(extraFoot||"")+'<button class="btn ghost" onclick="APP.closeModal()">Fechar</button>'+(onSave?'<button class="btn" id="mSave">Salvar</button>':"")+'</div></div>';
+    ovl.addEventListener("click",function(e){if(e.target===ovl)closeModal();});
+    document.body.appendChild(ovl);
+    if(onSave){document.getElementById("mSave").onclick=function(){onSave();};}
+  }
+  function closeModal(){var o=document.getElementById("mOvl");if(o)o.remove();}
+
+  /* ---------- auth + boot ---------- */
+  function paintUser(){
+    document.getElementById("orgNome").textContent=(S.config&&S.config.nome_empresa)||S.org.nome;
+    document.getElementById("orgPlano").textContent="plano "+(S.org.plano||"trial");
+    var nm=S.member.nome||S.user.email;
+    document.getElementById("uNome").textContent=nm;
+    document.getElementById("uAv").textContent=ini(nm);
+    document.getElementById("uPapel").textContent=S.member.papel;
+  }
+  function startApp(){
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+    buildMenus();paintUser();go("dashboard");
+  }
+  function afterAuth(user){
+    UID=user.id;S.user=user;
+    return SB.from("co_members").select("*, co_orgs(*)").eq("user_id",UID).eq("ativo",true).limit(1).maybeSingle().then(function(r){
+      if(r.data){ S.member=r.data; S.org=r.data.co_orgs;
+        return SB.from("co_config").select("*").eq("org_id",S.org.id).maybeSingle().then(function(cr){S.config=cr.data||{org_id:S.org.id};return loadAll().then(startApp);});
+      } else { return needOrg(user); }
+    });
+  }
+  function needOrg(user){
+    var nome=prompt("Bem-vindo! Qual o nome da sua empresa?","Minha Consultoria");
+    if(nome===null)nome="Minha empresa";
+    return SB.rpc("co_criar_org",{p_nome:nome}).then(function(r){
+      if(r.error){toast("Erro ao criar empresa: "+r.error.message,"danger");return;}
+      return afterAuth(user);
+    });
+  }
+  function login(){
+    var err=document.getElementById("lgErr");err.textContent="Entrando…";
+    SB.auth.signInWithPassword({email:(v("lgEmail")||"").trim(),password:v("lgPass")}).then(function(r){
+      if(r.error){err.textContent="E-mail ou senha inválidos.";return;}
+      afterAuth(r.data.user).catch(function(e){err.textContent="Erro ao carregar: "+(e.message||e);});
+    });
+  }
+  function signup(){
+    var err=document.getElementById("suErr");var email=(v("suEmail")||"").trim(),pass=v("suPass"),nome=v("suNome").trim(),emp=v("suEmpresa").trim();
+    if(!email||pass.length<6){err.textContent="Informe e-mail e senha (mín. 6).";return;}
+    err.textContent="Criando conta…";
+    SB.auth.signUp({email:email,password:pass,options:{data:{nome:nome,empresa:emp},emailRedirectTo:location.href.split("#")[0].split("?")[0]}}).then(function(r){
+      if(r.error){err.textContent="Erro: "+r.error.message;return;}
+      if(r.data.session&&r.data.user){
+        SB.rpc("co_criar_org",{p_nome:emp||("Empresa de "+(nome||email))}).then(function(){
+          // atualiza nome do membro
+          SB.from("co_members").update({nome:nome||email}).eq("user_id",r.data.user.id).then(function(){afterAuth(r.data.user);});
+        });
+      } else { err.style.color="#5BE49B";err.textContent="Conta criada! Confirme pelo link no seu e-mail e depois entre."; }
+    });
+  }
+  function forgot(){var em=prompt("E-mail para recuperar a senha:",v("lgEmail"));if(em){SB.auth.resetPasswordForEmail(em,{redirectTo:location.href.split("#")[0]}).then(function(r){alert(r.error?("Erro: "+r.error.message):("Link enviado para "+em));});}}
+  function showSignup(on){document.getElementById("viewLogin").classList.toggle("hidden",on);document.getElementById("viewSignup").classList.toggle("hidden",!on);}
+  function logout(){SB.auth.signOut().finally(function(){location.reload();});}
+  function boot(){
+    if(booted)return;booted=true;
+    if(!CFG.supabaseUrl||CFG.supabaseUrl.indexOf("SEU-PROJETO")>=0||!window.supabase){document.getElementById("lgErr").textContent="Configuração pendente.";return;}
+    SB=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    SB.auth.getSession().then(function(s){if(s.data&&s.data.session){afterAuth(s.data.session.user).catch(function(){});}});
+  }
+
+  return {boot:boot,go:go,login:login,signup:signup,forgot:forgot,showSignup:showSignup,logout:logout,toast:toast,
+    formCliente:formCliente,delCliente:delCliente,qcli:qcli,formVenda:formVenda,delVenda:delVenda,
+    formContrato:formContrato,qcon:qcon,portalLink:portalLink,formLanc:formLanc,delLanc:delLanc,
+    formEvento:formEvento,delEvento:delEvento,formAviso:formAviso,delAviso:delAviso,
+    pausa:pausa,fimPausa:fimPausa,saveConfig:saveConfig,closeModal:closeModal};
+})();
+document.addEventListener("DOMContentLoaded",APP.boot);
+if(document.readyState!=="loading")APP.boot();
+</script>
+</body>
+</html>
