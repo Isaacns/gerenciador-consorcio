@@ -325,6 +325,10 @@ window.VZC = (function(){
     var c=STATE.cotas.find(function(x){return x.id===id;}); if(!c)return;
     STATE._cur=id;
     var r=CRUD.resumoCota(c, parcelasDe(id));
+    document.querySelectorAll(".view").forEach(function(e){e.classList.remove("show");});
+    document.querySelectorAll("#menu button").forEach(function(b){b.classList.remove("active");});
+    document.getElementById("v-detalhe").classList.add("show");
+    window.scrollTo(0,0);
     var v=document.getElementById("v-detalhe");
     var nome=isProf()?(c.cliente_nome||"Cota"):((c.bem||"Cota")+" "+(c.cota||""));
     v.innerHTML='<button class="back" onclick="VZC.go(\'cotas\')">← Voltar</button>'+
