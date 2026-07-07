@@ -1,8 +1,6 @@
 /* =========================================================================
-   MODO AURA — Vizio (efeito de ambiente: brilho que respira + partículas)
-   Fiel ao studio/painel.html (@keyframes breathe), enriquecido com partículas
-   e pulsação. Adaptável pela cor de destaque (--blue / window.VZ_ACCENT).
-   Auto-contido: window.AURA. Toggle persistente (localStorage vz_aura_on).
+   MODO AURA — Vizio Consórcio (brilho que respira + partículas + pulso)
+   Fiel ao studio/painel.html (@keyframes breathe). window.AURA. Toggle ✨.
    ========================================================================= */
 (function(){
   'use strict';
@@ -17,7 +15,6 @@
   var KEY='vz_aura_on';
   function on(){ try{return localStorage.getItem(KEY)!=='0';}catch(e){return true;} }
 
-  /* CSS */
   var css=document.createElement('style'); css.id='auraCSS'; css.textContent=
     '.vz-aura{position:absolute;inset:0;z-index:0;pointer-events:none;background:'+
       'radial-gradient(60vw 60vw at 18% -10%,rgba('+R+',.16),transparent 60%),'+
@@ -28,10 +25,9 @@
     '.vz-parts{position:absolute;inset:0;z-index:0;pointer-events:none}'+
     '.vz-parts.fixed{position:fixed;mix-blend-mode:screen;opacity:.55}'+
     '.vz-aura-off .vz-aura,.vz-aura-off .vz-parts{display:none!important}'+
-    /* garante o conteúdo acima do aura */
     '#login>.box{position:relative;z-index:2}'+
     '#app{position:relative}#app>aside,#app>main{position:relative;z-index:1}'+
-    '#app aside>*{position:relative;z-index:1}'+ /* eleva marca/menu/foot acima do aura */
+    '#app aside>*{position:relative;z-index:1}'+
     '#vzAuraBtn{position:fixed;right:14px;bottom:14px;z-index:120;background:rgba(17,24,39,.82);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:99px;padding:8px 13px;font:600 .76rem/1 Inter,system-ui,sans-serif;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;gap:6px;align-items:center;transition:.2s}'+
     '#vzAuraBtn:hover{border-color:'+HEX+'}'+
     '@media print{.vz-aura,.vz-parts,#vzAuraBtn{display:none!important}}';
@@ -40,12 +36,7 @@
   var canvases=[];
   function makeAura(fixed){ var d=document.createElement('div'); d.className='vz-aura'+(fixed?' fixed':''); return d; }
   function makeCanvas(fixed){ var c=document.createElement('canvas'); c.className='vz-parts'+(fixed?' fixed':''); canvases.push(c); return c; }
-
-  function inject(container, fixed){
-    if(!container)return;
-    container.insertBefore(makeCanvas(fixed), container.firstChild);
-    container.insertBefore(makeAura(fixed), container.firstChild);
-  }
+  function inject(container, fixed){ if(!container)return; container.insertBefore(makeCanvas(fixed), container.firstChild); container.insertBefore(makeAura(fixed), container.firstChild); }
 
   function particlesFor(canvas){
     var ctx=canvas.getContext('2d'), parts=[], raf=0;
@@ -59,19 +50,21 @@
 
   var btn=document.createElement('button'); btn.id='vzAuraBtn'; btn.type='button'; btn.innerHTML='✨ AURA';
   function apply(){ document.body.classList.toggle('vz-aura-off', !on()); btn.style.opacity=on()?'1':'.5'; }
+  var starts=[];
   btn.onclick=function(){ try{localStorage.setItem(KEY, on()?'0':'1');}catch(e){} apply(); starts.forEach(function(s){s.start();}); };
 
-  var starts=[];
   function mount(){
     if(!document.body)return;
-    // login (fundo escuro) — aura absoluta dentro do #login
     inject(document.getElementById('login'), false);
-    // sidebar (fundo escuro) — aura respirando atrás do menu
     inject(document.querySelector('#app aside'), false);
-    // app inteiro — camada fixa (screen) para os ambientes escuros (sidebar/hero)
     var fa=makeAura(true), fc=makeCanvas(true);
     document.body.insertBefore(fc, document.body.firstChild);
     document.body.insertBefore(fa, document.body.firstChild);
     document.body.appendChild(btn);
     canvases.forEach(function(c){ starts.push(particlesFor(c)); });
     apply();
+    starts.forEach(function(s){ s.start(); });
+  }
+  window.AURA={ toggle:function(){ btn.click(); }, on:on };
+  if(document.readyState!=='loading')mount(); else document.addEventListener('DOMContentLoaded',mount);
+})();
