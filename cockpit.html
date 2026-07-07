@@ -223,7 +223,7 @@ window.APP=(function(){
   function loadAll(){
     return Promise.all([
       reload("members"),reload("clientes"),reload("contratos"),reload("vendas"),
-      reload("lancamentos"),reload("avisos"),reload("eventos"),reload("pausas"),reload("interacoes")
+      reload("lancamentos"),reload("avisos"),reload("eventos"),reload("pausas"),reload("interacoes"),reload("parcelas")
     ]);
   }
   function insert(t,obj){obj.org_id=S.org.id;return tbl("co_"+t).insert(obj).select().single();}
@@ -633,21 +633,169 @@ window.APP=(function(){
     if(nn<=0)return 0; if(i<=0)return Math.round(V/nn*100)/100;
     return Math.round(V*i/(1-Math.pow(1+i,-nn))*100)/100;
   }
+  /* ---- cronograma / parcelas ---- */
+  function addMeses(iso,m){var d=new Date((String(iso||today()).slice(0,10))+"T00:00:00");d.setMonth(d.getMonth()+m);return d.toISOString().slice(0,10);}
+  function parcelasDe(id){return (S.parcelas||[]).filter(function(p){return p.contrato_id===id;}).sort(function(a,b){return a.numero-b.numero;});}
+  function paga(p){return p.quitado||p.status==="pago";}
+  function resumoContrato(c){
+    var ps=parcelasDe(c.id), pagas=0,pago=0,saldo=0,atraso=0,prox=null, hj=today();
+    ps.forEach(function(p){
+      if(paga(p)){pagas++;pago+=Number(p.valor_pago||p.valor_previsto)||0;}
+      else{saldo+=Number(p.valor_previsto)||0; if(p.vencimento&&String(p.vencimento).slice(0,10)<hj)atraso++; if(!prox)prox=p;}
+    });
+    var total=ps.length;
+    if(total===0){var pb=Number(c.parcela_base)||parcelaContrato(c);total=Number(c.prazo_meses)||0;saldo=pb*total;}
+    return {total:total,pagas:pagas,pago:pago,saldo:saldo,atraso:atraso,prox:prox,tem:ps.length>0};
+  }
+  function gerarCronograma(c){
+    var base=Number(c.parcela_base)||parcelaContrato(c), prazo=Number(c.prazo_meses)||0;
+    if(prazo<=0||!(base>0))return [];
+    var ades=c.data_adesao||today(), rows=[];
+    for(var i=1;i<=prazo;i++){rows.push({numero:i,vencimento:addMeses(ades,i-1),valor_previsto:Math.round(base*100)/100,valor_pago:0,quitado:false,status:"aberto"});}
+    return rows;
+  }
+
   function renderContratos(){
-    var q=(S._qcon||"").toLowerCase();
-    var lista=S.contratos.filter(function(c){return !q||((clienteNome(c.cliente_id))+(c.administradora||"")).toLowerCase().indexOf(q)>=0;});
-    document.getElementById("view").innerHTML=topbar("Contratos","Consórcios e financiamentos dos seus clientes.",'<button class="btn" onclick="APP.formContrato()">＋ Novo contrato</button>')+
-      '<div class="card"><div class="tools"><input placeholder="Buscar cliente/administradora..." value="'+esc(S._qcon||"")+'" oninput="APP.qcon(this.value)"><span class="pill">'+lista.length+' contrato(s)</span></div>'+
-      '<table><thead><tr><th>Cliente</th><th>Tipo</th><th>Administradora</th><th>Crédito</th><th>Parcela</th><th>Status</th><th></th></tr></thead><tbody>'+
+    var q=(S._qcon||"").toLowerCase(), ft=S._conTipo||"", fs=S._conStatus||"";
+    var lista=S.contratos.filter(function(c){
+      if(ft&&c.tipo!==ft)return false;
+      if(fs&&c.status!==fs)return false;
+      return !q||((clienteNome(c.cliente_id))+(c.administradora||"")+(c.bem||"")).toLowerCase().indexOf(q)>=0;
+    });
+    var ativos=S.contratos.filter(function(c){return c.status==="andamento"||c.status==="contemplado";});
+    var credito=ativos.reduce(function(s,c){return s+(Number(c.valor_credito)||0);},0);
+    var contemp=S.contratos.filter(function(c){return c.contemplado||c.status==="contemplado";}).length;
+    var atraso=S.contratos.reduce(function(s,c){return s+resumoContrato(c).atraso;},0);
+    function optT(v2,l){return '<option value="'+v2+'"'+(ft===v2?" selected":"")+'>'+l+'</option>';}
+    function optS(v2,l){return '<option value="'+v2+'"'+(fs===v2?" selected":"")+'>'+l+'</option>';}
+    document.getElementById("view").innerHTML=topbar("Contratos","Cotas de consórcio e financiamentos sob gestão.",'<button class="btn" onclick="APP.formContrato()">＋ Novo contrato</button>')+
+      '<div class="kpis">'+
+        kpi("Contratos ativos",n0(ativos.length),S.contratos.length+" no total","accent")+
+        kpi("Crédito sob gestão",BRL(credito),"carteira ativa","")+
+        kpi("Contemplados",n0(contemp),"conquistas dos clientes","")+
+        kpi("Parcelas em atraso",n0(atraso),atraso?"exigem cobrança":"tudo em dia",atraso?"accent":"")+
+      '</div>'+
+      '<div class="card"><div class="tools">'+
+        '<input placeholder="Buscar cliente, administradora, bem..." value="'+esc(S._qcon||"")+'" oninput="APP.qcon(this.value)">'+
+        '<select onchange="APP.conFiltro(\'tipo\',this.value)"><option value="">Todos os tipos</option>'+optT("consorcio","Consórcio")+optT("financiamento","Financiamento")+'</select>'+
+        '<select onchange="APP.conFiltro(\'status\',this.value)"><option value="">Todos os status</option>'+optS("andamento","Em andamento")+optS("contemplado","Contemplado")+optS("quitado","Quitado")+optS("cancelado","Cancelado")+'</select>'+
+        '<span class="pill">'+lista.length+' contrato(s)</span></div>'+
+      '<table><thead><tr><th>Cliente</th><th>Tipo</th><th>Administradora</th><th>Crédito</th><th>Andamento</th><th>Status</th><th></th></tr></thead><tbody>'+
       (lista.length?lista.map(function(c){
         var badge=c.contemplado?'<span class="badge b-ok">Contemplado</span>':c.status==="quitado"?'<span class="badge b-vio">Quitado</span>':c.status==="cancelado"?'<span class="badge b-rose">Cancelado</span>':'<span class="badge b-blue">Em andamento</span>';
-        return '<tr class="clk" onclick="APP.formContrato(\''+c.id+'\')"><td><div class="person"><div class="avatar-s">'+ini(clienteNome(c.cliente_id))+'</div><div><b>'+esc(clienteNome(c.cliente_id))+'</b><span>'+esc((c.bem||"")+" "+(c.grupo?("· G"+c.grupo):""))+'</span></div></div></td>'+
+        var r=resumoContrato(c), pct=r.total?Math.round(r.pagas/r.total*100):0;
+        var prog='<div style="min-width:120px"><div class="bar" style="height:7px"><i style="width:'+pct+'%"></i></div><div style="font-size:.7rem;color:var(--muted2);margin-top:3px">'+r.pagas+"/"+r.total+' pagas'+(r.atraso?(' · <span style="color:#FDA4AF">'+r.atraso+' em atraso</span>'):"")+'</div></div>';
+        return '<tr class="clk" onclick="APP.abrirContrato(\''+c.id+'\')"><td><div class="person"><div class="avatar-s">'+ini(clienteNome(c.cliente_id))+'</div><div><b>'+esc(clienteNome(c.cliente_id))+'</b><span>'+esc((c.bem||"")+(c.grupo?(" · G"+c.grupo):""))+'</span></div></div></td>'+
           '<td><span class="badge '+(c.tipo==="consorcio"?"b-blue":"b-warn")+'">'+(c.tipo==="consorcio"?"Consórcio":"Financ.")+'</span></td><td>'+esc(c.administradora||"—")+'</td>'+
-          '<td class="num">'+BRL(c.valor_credito)+'</td><td class="num">'+BRL(parcelaContrato(c))+'</td><td>'+badge+'</td>'+
-          '<td onclick="event.stopPropagation()"><button class="act" title="Link do cliente" onclick="APP.portalLink(\''+c.id+'\')">🔗</button></td></tr>';
-      }).join(""):'<tr><td colspan="7" class="empty">Nenhum contrato ainda.</td></tr>')+'</tbody></table></div>';
+          '<td class="num">'+BRL(c.valor_credito)+'</td><td>'+prog+'</td><td>'+badge+'</td>'+
+          '<td onclick="event.stopPropagation()"><button class="act" title="Abrir contrato" onclick="APP.abrirContrato(\''+c.id+'\')">↗</button></td></tr>';
+      }).join(""):'<tr><td colspan="7" class="empty">Nenhum contrato com esse filtro. Clique em <b>Novo contrato</b>.</td></tr>')+'</tbody></table></div>';
   }
   function qcon(x){S._qcon=x;renderContratos();}
+  function conFiltro(campo,val){if(campo==="tipo")S._conTipo=val;else S._conStatus=val;renderContratos();}
+
+  /* ---- Contrato 360 ---- */
+  function abrirContrato(id){S._conAtual=id;renderContratoDetalhe(id);window.scrollTo(0,0);}
+  function voltarContratos(){S._conAtual=null;go("contratos");}
+  function renderContratoDetalhe(id){
+    var c=S.contratos.find(function(x){return x.id===id;}); if(!c){go("contratos");return;}
+    S._conAtual=id;
+    var cli=clienteNome(c.cliente_id), ps=parcelasDe(id), r=resumoContrato(c), parcela=parcelaContrato(c);
+    var pct=r.total?Math.round(r.pagas/r.total*100):0;
+    var contemplado=c.contemplado||c.status==="contemplado";
+    var stBad=contemplado?'<span class="badge b-ok">Contemplado</span>':c.status==="quitado"?'<span class="badge b-vio">Quitado</span>':c.status==="cancelado"?'<span class="badge b-rose">Cancelado</span>':'<span class="badge b-blue">Em andamento</span>';
+    var tipoBad='<span class="badge '+(c.tipo==="consorcio"?"b-blue":"b-warn")+'">'+(c.tipo==="consorcio"?"Consórcio":"Financiamento")+'</span>';
+    var meta=[];
+    meta.push('<a href="#" onclick="APP.abrirCli(\''+c.cliente_id+'\');return false" style="color:var(--blue-l);text-decoration:none">👤 '+esc(cli)+'</a>');
+    if(c.bem)meta.push("📦 "+esc(c.bem));
+    if(c.grupo||c.cota)meta.push("🔖 "+esc((c.grupo?("G"+c.grupo):"")+(c.grupo&&c.cota?" · ":"")+(c.cota?("Cota "+c.cota):"")));
+    if(c.data_adesao)meta.push("📅 adesão "+dBR(c.data_adesao));
+    if(c.prazo_meses)meta.push("⏳ "+c.prazo_meses+" meses");
+    if(c.indice_reajuste&&c.tipo==="consorcio")meta.push("📈 "+esc(c.indice_reajuste));
+    var head='<div class="card" style="background:linear-gradient(150% 130% at 85% 0%,#16224A,#141A26 60%);border-color:#26407F">'+
+      '<div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">'+
+        '<div class="avatar-s" style="width:52px;height:52px;font-size:1.05rem;flex:none">'+ini(cli)+'</div>'+
+        '<div style="flex:1;min-width:220px">'+
+          '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h2 style="margin:0;color:#fff;font-size:1.12rem">'+esc(c.administradora||"Contrato")+'</h2>'+tipoBad+stBad+'</div>'+
+          '<div style="margin-top:8px;color:var(--muted);font-size:.82rem;display:flex;gap:12px;flex-wrap:wrap">'+meta.join('<span style="opacity:.4">·</span>')+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">'+
+        '<button class="btn sm" onclick="APP.portalLink(\''+id+'\')">🔗 Link do cliente</button>'+
+        (contemplado?'<button class="btn ghost sm" onclick="APP.toggleContemplado(\''+id+'\')">Desfazer contemplação</button>':'<button class="btn sm" onclick="APP.toggleContemplado(\''+id+'\')">🎉 Marcar contemplado</button>')+
+        '<button class="btn ghost sm" onclick="APP.criarCronograma(\''+id+'\')">'+(r.tem?"↻ Regerar cronograma":"＋ Gerar cronograma")+'</button>'+
+        '<button class="btn ghost sm" onclick="APP.formContrato(\''+id+'\')">✏️ Editar</button>'+
+      '</div></div>';
+    var kpis='<div class="kpis">'+
+      kpi("Crédito",BRL(c.valor_credito),(c.tipo==="consorcio"?"carta de crédito":"valor financiado"),"accent")+
+      kpi("Parcela",BRL(parcela),(c.tipo==="consorcio"?"mensal (s/ juros)":"mensal ("+(c.sistema||"PRICE")+")"),"")+
+      kpi("Pago",BRL(r.pago),r.pagas+"/"+r.total+" parcelas ("+pct+"%)","")+
+      kpi("Saldo a pagar",BRL(r.saldo),(r.atraso?(r.atraso+" em atraso"):"em dia"),r.atraso?"":"")+
+    '</div>'+
+      '<div class="card" style="padding:12px 14px"><div style="display:flex;align-items:center;gap:12px"><div class="bar" style="flex:1;height:10px"><i style="width:'+pct+'%"></i></div><b class="num" style="color:#fff">'+pct+'%</b></div>'+
+        '<div style="color:var(--muted2);font-size:.76rem;margin-top:5px">'+r.pagas+' de '+r.total+' parcelas quitadas'+(r.prox?(' · próxima: nº '+r.prox.numero+' em '+dBR(r.prox.vencimento)):"")+'</div></div>';
+    var contempCard=contemplado?
+      ('<div class="card" style="background:linear-gradient(150% 130% at 85% 0%,#13351F,#141A26 60%);border-color:#1F7A48"><h2>🎉 Contemplado</h2><div class="csub">'+(c.data_contemplacao?("Contemplação em "+dBR(c.data_contemplacao)):"Momento de conquista do cliente")+'.</div>'+
+        '<div style="color:var(--muted);font-size:.84rem;margin-bottom:10px">Envie o link de acompanhamento — o cliente recebe o aviso de contemplação com uma mensagem de apoio e segurança.</div>'+
+        '<button class="btn sm" onclick="APP.portalLink(\''+id+'\')">🔗 Gerar / copiar link</button></div>')
+      :('<div class="card"><h2>Contemplação</h2><div class="csub">Quando este contrato for contemplado.</div><div class="empty">Ainda em andamento. Ao contemplar, marque aqui — o cliente é avisado no portal com uma mensagem de apoio.<div style="margin-top:8px"><button class="btn sm" onclick="APP.toggleContemplado(\''+id+'\')">🎉 Marcar como contemplado</button></div></div></div>');
+    var cardCron='<div class="card"><h2>Cronograma de parcelas</h2><div class="csub">'+(r.tem?(r.total+" parcelas · marque os pagamentos conforme recebe."):"Gere o cronograma para acompanhar os pagamentos.")+'</div>'+
+      (r.tem?('<div style="max-height:420px;overflow:auto"><table><thead><tr><th>Nº</th><th>Vencimento</th><th>Valor</th><th>Situação</th><th></th></tr></thead><tbody>'+
+        ps.map(function(p){
+          var pd=paga(p), over=!pd&&p.vencimento&&String(p.vencimento).slice(0,10)<today();
+          var bcls=pd?"b-ok":over?"b-rose":"b-blue", blab=pd?"Paga":over?"Atrasada":"Aberta";
+          var isProx=r.prox&&p.id===r.prox.id;
+          return '<tr'+(isProx?' style="background:var(--surface2)"':'')+'><td class="num">'+(isProx?"▶ ":"")+p.numero+'</td><td>'+dBR(p.vencimento)+'</td><td class="num">'+BRL(pd?(p.valor_pago||p.valor_previsto):p.valor_previsto)+'</td><td><span class="badge '+bcls+'">'+blab+'</span></td>'+
+            '<td>'+(pd?'<button class="act" title="Estornar" onclick="APP.estornarPaga(\''+p.id+'\')">↩</button>':'<button class="act" title="Registrar pagamento" onclick="APP.marcarPaga(\''+p.id+'\')">✔</button>')+'</td></tr>';
+        }).join("")+'</tbody></table></div>')
+        :'<div class="empty">Nenhuma parcela gerada. <button class="btn sm" onclick="APP.criarCronograma(\''+id+'\')">＋ Gerar cronograma</button></div>')+'</div>';
+    document.getElementById("view").innerHTML=
+      '<div class="topbar"><div><button class="btn ghost sm" onclick="APP.voltarContratos()">← Contratos</button><h1 style="margin-top:8px">'+esc(cli)+'</h1><p>Contrato 360 · '+esc(c.administradora||(c.tipo==="consorcio"?"Consórcio":"Financiamento"))+'.</p></div>'+
+        '<button class="act" title="Excluir contrato" onclick="APP.delContrato(\''+id+'\')" style="font-size:1rem">🗑</button></div>'+
+      head+kpis+
+      '<div class="grid2"><div>'+cardCron+'</div><div>'+contempCard+'</div></div>';
+  }
+  function criarCronograma(id){
+    var c=S.contratos.find(function(x){return x.id===id;}); if(!c)return;
+    var existentes=parcelasDe(id);
+    var doIt=function(){
+      var rows=gerarCronograma(c); if(!rows.length){toast("Informe prazo e valores do contrato primeiro.","warn");return;}
+      rows=rows.map(function(rr){return Object.assign({org_id:S.org.id,contrato_id:id},rr);});
+      var ins=function(){SB.from("co_parcelas").insert(rows).then(function(rr){if(rr.error){toast("Erro: "+rr.error.message,"danger");return;}reload("parcelas").then(function(){toast("Cronograma gerado ("+rows.length+" parcelas).","ok");renderContratoDetalhe(id);});});};
+      if(existentes.length)SB.from("co_parcelas").delete().eq("contrato_id",id).then(ins);else ins();
+    };
+    if(existentes.length)confirmModal("Já existe um cronograma com "+existentes.length+" parcela(s). Regerar substitui tudo e perde os pagamentos marcados. Continuar?",doIt,"Regerar",true);
+    else doIt();
+  }
+  function marcarPaga(pid){
+    var p=(S.parcelas||[]).find(function(x){return x.id===pid;}); if(!p)return;
+    modal("Registrar pagamento",
+      '<div class="fgrid"><div class="field"><label>Parcela</label><input value="Nº '+p.numero+' · venc. '+dBR(p.vencimento)+'" readonly></div>'+
+      '<div class="field"><label>Valor pago (R$)</label><input id="pg_val" type="number" step="0.01" value="'+(p.valor_pago||p.valor_previsto||"")+'"></div></div>',
+      function(){
+        var val=Number(v("pg_val"))||Number(p.valor_previsto)||0;
+        SB.from("co_parcelas").update({status:"pago",quitado:true,valor_pago:val}).eq("id",pid).then(function(rr){if(rr.error){toast("Erro: "+rr.error.message,"danger");return;}reload("parcelas").then(function(){closeModal();toast("Pagamento registrado.","ok");renderContratoDetalhe(p.contrato_id);});});
+        return false;
+      });
+  }
+  function estornarPaga(pid){
+    var p=(S.parcelas||[]).find(function(x){return x.id===pid;}); if(!p)return;
+    SB.from("co_parcelas").update({status:"aberto",quitado:false,valor_pago:0}).eq("id",pid).then(function(rr){if(rr.error){toast("Erro: "+rr.error.message,"danger");return;}reload("parcelas").then(function(){toast("Pagamento estornado.","ok");renderContratoDetalhe(p.contrato_id);});});
+  }
+  function toggleContemplado(id){
+    var c=S.contratos.find(function(x){return x.id===id;}); if(!c)return;
+    var novo=!(c.contemplado||c.status==="contemplado");
+    var obj=novo?{contemplado:true,status:"contemplado",data_contemplacao:c.data_contemplacao||today()}:{contemplado:false,status:"andamento",data_contemplacao:null};
+    update("contratos",id,obj).then(function(rr){if(rr.error){toast("Erro: "+rr.error.message,"danger");return;}reload("contratos").then(function(){
+      toast(novo?"Contemplado! 🎉 Envie o link ao cliente.":"Contemplação desfeita.",novo?"ok":"warn");
+      renderContratoDetalhe(id); if(novo)portalLink(id);
+    });});
+  }
+  function delContrato(id){
+    confirmModal('Excluir este contrato e todo o cronograma de parcelas? Vendas e lançamentos vinculados são preservados (apenas desvinculados).',function(){
+      del("contratos",id).then(function(){Promise.all([reload("contratos"),reload("parcelas")]).then(function(){S._conAtual=null;toast("Contrato excluído.","ok");if(S._cliAtual)renderClienteDetalhe(S._cliAtual);else go("contratos");});});
+    },"Excluir contrato",true);
+  }
   function formContrato(id,prefill){
     var c=id?S.contratos.find(function(x){return x.id===id;}):Object.assign({tipo:"consorcio",indice_reajuste:"INCC",sistema:"SAC",status:"andamento"},prefill||{});
     var optC=S.clientes.map(function(x){return '<option value="'+x.id+'"'+(x.id===c.cliente_id?" selected":"")+'>'+esc(x.nome)+'</option>';}).join("");
@@ -671,7 +819,17 @@ window.APP=(function(){
         if(tipo==="consorcio"){obj.taxa_adm_pct=taxa;obj.taxa_juros_pct=0;}else{obj.taxa_juros_pct=taxa;obj.taxa_adm_pct=0;}
         obj.parcela_base=parcelaContrato(Object.assign({},c,obj));
         var p=id?update("contratos",id,obj):insert("contratos",obj);
-        p.then(function(r){if(r.error){toast("Erro: "+r.error.message,"danger");return;}reload("contratos").then(function(){closeModal();toast("Contrato salvo.","ok");renderContratos();});});
+        p.then(function(r){
+          if(r.error){toast("Erro: "+r.error.message,"danger");return;}
+          var newId=id||(r.data&&r.data.id);
+          var finish=function(){Promise.all([reload("contratos"),reload("parcelas")]).then(function(){closeModal();toast("Contrato salvo.","ok");
+            if(S._conAtual)renderContratoDetalhe(S._conAtual);else if(S._cliAtual)renderClienteDetalhe(S._cliAtual);else renderContratos();});};
+          if(!id&&newId&&Number(obj.prazo_meses)>0&&Number(obj.parcela_base)>0){
+            var rows=gerarCronograma(Object.assign({},obj)).map(function(rr){return Object.assign({org_id:S.org.id,contrato_id:newId},rr);});
+            if(rows.length){SB.from("co_parcelas").insert(rows).then(finish);return;}
+          }
+          finish();
+        });
         return false;
       }, id?'<button class="btn ghost sm" onclick="APP.portalLink(\''+id+'\')">🔗 Link do cliente</button>':"");
   }
@@ -939,7 +1097,9 @@ window.APP=(function(){
     novaInteracao:novaInteracao,addInteracaoRapida:addInteracaoRapida,delInteracao:delInteracao,editFollowup:editFollowup,
     concluirFollowup:concluirFollowup,novaVendaCli:novaVendaCli,novoContratoCli:novoContratoCli,confirmModal:confirmModal,
     formVenda:formVenda,delVenda:delVenda,
-    formContrato:formContrato,qcon:qcon,portalLink:portalLink,formLanc:formLanc,delLanc:delLanc,
+    formContrato:formContrato,qcon:qcon,conFiltro:conFiltro,abrirContrato:abrirContrato,voltarContratos:voltarContratos,
+    criarCronograma:criarCronograma,marcarPaga:marcarPaga,estornarPaga:estornarPaga,toggleContemplado:toggleContemplado,delContrato:delContrato,
+    portalLink:portalLink,formLanc:formLanc,delLanc:delLanc,
     qv:qv,vcons:vcons,dragStart:dragStart,dragEnd:dragEnd,dragOver:dragOver,dragLeave:dragLeave,drop:drop,
     moverEtapa:moverEtapa,ganhar:ganhar,perder:perder,gerarContrato:gerarContrato,
     formEvento:formEvento,delEvento:delEvento,formAviso:formAviso,delAviso:delAviso,
