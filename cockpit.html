@@ -258,7 +258,8 @@ window.APP=(function(){
     var pipeValor=pipeAberto.reduce(function(s,x){return s+(Number(x.valor_credito)||0);},0);
     var ativos=S.contratos.filter(function(c){return c.status==="andamento"||c.status==="contemplado";});
     var contemplados=S.contratos.filter(function(c){return c.contemplado||c.status==="contemplado";});
-    var recMes=S.lancamentos.filter(function(l){return l.tipo==="receita"&&mes(l.data)===mesAtual;}).reduce(function(s,l){return s+(Number(l.valor)||0);},0);
+    var comMesD=S.vendas.filter(function(x){return x.etapa==="fechado"&&mes(x.data_fechamento)===mesAtual;}).reduce(function(s,x){return s+(Number(x.comissao)||0);},0);
+    var recMes=comMesD+S.lancamentos.filter(function(l){return l.tipo==="receita"&&mes(l.data)===mesAtual;}).reduce(function(s,l){return s+(Number(l.valor)||0);},0);
     var despMes=S.lancamentos.filter(function(l){return l.tipo==="despesa"&&mes(l.data)===mesAtual;}).reduce(function(s,l){return s+(Number(l.valor)||0);},0);
     var meta=(S.config&&Number(S.config.meta_mensal_credito))||0;
     var pctMeta=meta>0?Math.min(100,Math.round(creditoMes/meta*100)):0;
@@ -901,26 +902,65 @@ window.APP=(function(){
   function playbook(t,d,tag){return '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 13px"><div style="display:flex;justify-content:space-between;gap:8px"><b style="color:#fff;font-size:.86rem">'+esc(t)+'</b><span class="pill">'+esc(tag)+'</span></div><div style="color:var(--muted);font-size:.8rem;margin-top:4px">'+esc(d)+'</div></div>';}
 
   /* ================= FINANCEIRO ================= */
+  function conNome(cid){var c=S.contratos.find(function(x){return x.id===cid;});return c?(clienteNome(c.cliente_id)+" · "+(c.administradora||(c.tipo==="consorcio"?"Consórcio":"Financ."))):"—";}
+  function mesLabel(m){var p=String(m).split("-");return p[1]+"/"+p[0].slice(2);}
   function renderFinanceiro(){
-    var mesAtual=today().slice(0,7);
-    var doMes=S.lancamentos.filter(function(l){return mes(l.data)===mesAtual;});
-    var rec=doMes.filter(function(l){return l.tipo==="receita";}).reduce(function(s,l){return s+(+l.valor||0);},0);
-    var desp=doMes.filter(function(l){return l.tipo==="despesa";}).reduce(function(s,l){return s+(+l.valor||0);},0);
-    var lista=S.lancamentos.slice().sort(function(a,b){return (b.data||"").localeCompare(a.data||"");}).slice(0,40);
-    document.getElementById("view").innerHTML=topbar("Financeiro","Receitas, despesas e comissões.",'<button class="btn" onclick="APP.formLanc()">＋ Lançamento</button>')+
-      '<div class="kpis">'+kpi("Receitas (mês)",BRL(rec),"","accent")+kpi("Despesas (mês)",BRL(desp),"","")+kpi("Saldo (mês)",BRL(rec-desp),"","")+kpi("Lançamentos",n0(S.lancamentos.length),"total","")+'</div>'+
-      '<div class="card"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th></th></tr></thead><tbody>'+
-      (lista.length?lista.map(function(l){return '<tr><td>'+dBR(l.data)+'</td><td>'+esc(l.descricao||"—")+'</td><td>'+esc(l.categoria||"—")+'</td><td><span class="badge '+(l.tipo==="receita"?"b-ok":"b-rose")+'">'+l.tipo+'</span></td><td class="num">'+BRL(l.valor)+'</td><td><button class="act" onclick="APP.delLanc(\''+l.id+'\')">🗑</button></td></tr>';}).join(""):'<tr><td colspan="6" class="empty">Nenhum lançamento.</td></tr>')+'</tbody></table></div>';
+    var mesAtual=today().slice(0,7), hj=today();
+    var recLanc=S.lancamentos.filter(function(l){return l.tipo==="receita"&&mes(l.data)===mesAtual;}).reduce(function(s,l){return s+(+l.valor||0);},0);
+    var despMes=S.lancamentos.filter(function(l){return l.tipo==="despesa"&&mes(l.data)===mesAtual;}).reduce(function(s,l){return s+(+l.valor||0);},0);
+    var comMes=S.vendas.filter(function(x){return x.etapa==="fechado"&&mes(x.data_fechamento)===mesAtual;}).reduce(function(s,x){return s+(+x.comissao||0);},0);
+    var recMes=recLanc+comMes, resultado=recMes-despMes;
+    var atrasadas=(S.parcelas||[]).filter(function(p){return !(p.quitado||p.status==="pago")&&p.vencimento&&String(p.vencimento).slice(0,10)<hj;});
+    var atrasoTot=atrasadas.reduce(function(s,p){return s+(+p.valor_previsto||0);},0);
+    var meses=[], d=new Date();
+    for(var i=0;i<6;i++){var dd=new Date(d.getFullYear(),d.getMonth()+i,1);meses.push(dd.toISOString().slice(0,7));}
+    var serie=meses.map(function(m){return (S.parcelas||[]).filter(function(p){return !(p.quitado||p.status==="pago")&&mes(p.vencimento)===m;}).reduce(function(s,p){return s+(+p.valor_previsto||0);},0);});
+    var maxv=Math.max.apply(null,serie.concat([1]));
+    var despCat={}; S.lancamentos.filter(function(l){return l.tipo==="despesa"&&mes(l.data)===mesAtual;}).forEach(function(l){var k=l.categoria||"Outras";despCat[k]=(despCat[k]||0)+(+l.valor||0);});
+    var byCon={}; atrasadas.forEach(function(p){byCon[p.contrato_id]=byCon[p.contrato_id]||{n:0,val:0};byCon[p.contrato_id].n++;byCon[p.contrato_id].val+=(+p.valor_previsto||0);});
+    var lista=S.lancamentos.slice().sort(function(a,b){return (b.data||"").localeCompare(a.data||"");}).slice(0,30);
+    function dre(l,val,cls,strong){return '<div style="display:flex;justify-content:space-between;padding:'+(strong?"9px 0":"6px 0")+';border-bottom:1px solid var(--border2)'+(strong?";border-top:1px solid var(--border)":"")+'"><span style="'+(strong?"color:#fff;font-weight:700":"color:var(--muted)")+';font-size:.85rem">'+l+'</span><b class="num" style="color:'+cls+'">'+BRL(val)+'</b></div>';}
+    document.getElementById("view").innerHTML=topbar("Financeiro","Comissões, resultado do mês e saúde da carteira.",'<button class="btn" onclick="APP.formLanc()">＋ Lançamento</button>')+
+      '<div class="kpis">'+
+        kpi("Receita do mês",BRL(recMes),"comissões "+BRL(comMes)+" + outras","accent")+
+        kpi("Despesas do mês",BRL(despMes),Object.keys(despCat).length+" categoria(s)","")+
+        kpi("Resultado do mês",BRL(resultado),resultado>=0?"lucro":"prejuízo","")+
+        kpi("Inadimplência",BRL(atrasoTot),atrasadas.length+" parcela(s) em atraso",atrasoTot?"accent":"")+
+      '</div>'+
+      '<div class="card"><h2>Carteira a vencer — próximos 6 meses</h2><div class="csub">Parcelas dos clientes ainda não pagas (fluxo esperado na base).</div>'+
+        '<div style="display:flex;align-items:flex-end;gap:12px;height:150px;padding-top:8px">'+
+        meses.map(function(m,idx){var h=Math.round(serie[idx]/maxv*130);return '<div style="flex:1;text-align:center"><div style="height:130px;display:flex;align-items:flex-end"><div style="width:100%;background:linear-gradient(180deg,#3C94FC,#2563EB);border-radius:6px 6px 0 0;height:'+Math.max(3,h)+'px"></div></div><div style="font-size:.7rem;color:var(--muted2);margin-top:5px">'+mesLabel(m)+'</div><div style="font-size:.7rem;color:var(--muted)">'+(serie[idx]>=1000?(Math.round(serie[idx]/1000)+"k"):Math.round(serie[idx]))+'</div></div>';}).join("")+
+        '</div></div>'+
+      '<div class="grid2"><div>'+
+        '<div class="card"><h2>Resultado do mês (DRE)</h2><div class="csub">Como o mês fechou.</div>'+
+          dre("Comissões de vendas",comMes,"#5BE49B")+
+          dre("Outras receitas",recLanc,"#5BE49B")+
+          dre("(=) Receita total",recMes,"#fff",true)+
+          (Object.keys(despCat).length?Object.keys(despCat).map(function(k){return dre("(−) "+esc(k),despCat[k],"#FDA4AF");}).join(""):dre("(−) Despesas",0,"#FDA4AF"))+
+          dre("(=) Resultado",resultado,resultado>=0?"#5BE49B":"#FDA4AF",true)+
+        '</div>'+
+        '<div class="card"><h2>Lançamentos recentes</h2><div class="csub">Receitas e despesas registradas.</div>'+
+          '<table><tbody>'+
+          (lista.length?lista.map(function(l){return '<tr><td>'+dBR(l.data)+'</td><td><b style="color:#fff">'+esc(l.descricao||l.categoria||"—")+'</b>'+(l.contrato_id?('<br><span style="color:var(--muted2);font-size:.74rem">'+esc(conNome(l.contrato_id))+'</span>'):"")+'</td><td><span class="badge '+(l.tipo==="receita"?"b-ok":"b-rose")+'">'+l.tipo+'</span></td><td class="num">'+BRL(l.valor)+'</td><td><button class="act" title="Excluir" onclick="APP.delLanc(\''+l.id+'\')">🗑</button></td></tr>';}).join(""):'<tr><td colspan="5" class="empty">Nenhum lançamento. Clique em <b>Lançamento</b>.</td></tr>')+'</tbody></table></div>'+
+      '</div><div>'+
+        '<div class="card" style="'+(atrasoTot?'border-color:#7a2230':"")+'"><h2>⚠️ Inadimplência</h2><div class="csub">Parcelas vencidas e não pagas — priorize a cobrança.</div>'+
+          (atrasadas.length?('<div style="font-size:1.5rem;font-weight:800;color:#FDA4AF" class="num">'+BRL(atrasoTot)+'</div><div style="color:var(--muted2);font-size:.78rem;margin-bottom:10px">'+atrasadas.length+' parcela(s) em '+Object.keys(byCon).length+' contrato(s)</div>'+
+            Object.keys(byCon).map(function(cid){var b=byCon[cid];return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border2)"><div class="person"><div class="avatar-s">'+ini(conNome(cid))+'</div><div><b>'+esc(conNome(cid))+'</b><span>'+b.n+' parcela(s) · '+BRL(b.val)+'</span></div></div><button class="btn ghost sm" onclick="APP.abrirContrato(\''+cid+'\')">Abrir</button></div>';}).join(""))
+            :'<div class="empty">Nenhuma parcela em atraso. Carteira saudável 👏</div>')+'</div>'+
+        '<div class="card"><h2>Comissões (mês)</h2><div class="csub">Vendas fechadas no mês corrente.</div>'+
+          (function(){var fech=S.vendas.filter(function(x){return x.etapa==="fechado"&&mes(x.data_fechamento)===mesAtual;});return fech.length?('<table><tbody>'+fech.map(function(x){return '<tr><td><b style="color:#fff">'+esc(x.titulo||clienteNome(x.cliente_id))+'</b><br><span style="color:var(--muted2);font-size:.74rem">'+esc(memberNome(x.consultor_id))+'</span></td><td class="num">'+BRL(x.comissao)+'</td></tr>';}).join("")+'</tbody></table>'):'<div class="empty">Nenhuma venda fechada este mês ainda.</div>';})()+'</div>'+
+      '</div></div>';
   }
   function formLanc(){
+    var optC=S.contratos.map(function(c){return '<option value="'+c.id+'">'+esc(clienteNome(c.cliente_id)+" · "+(c.administradora||""))+'</option>';}).join("");
     modal("Novo lançamento",
       '<div class="fgrid"><div class="field"><label>Tipo</label><select id="l_tipo"><option value="receita">Receita</option><option value="despesa">Despesa</option></select></div><div class="field"><label>Valor (R$)</label><input id="l_val" type="number" step="0.01"></div></div>'+
-      '<div class="fgrid"><div class="field"><label>Data</label><input id="l_data" type="date" value="'+today()+'"></div><div class="field"><label>Categoria</label><input id="l_cat" placeholder="Comissão, Marketing..."></div></div>'+
-      '<div class="field"><label>Descrição</label><input id="l_desc"></div>',
+      '<div class="fgrid"><div class="field"><label>Data</label><input id="l_data" type="date" value="'+today()+'"></div><div class="field"><label>Categoria</label><input id="l_cat" placeholder="Comissão, Marketing, Aluguel..."></div></div>'+
+      '<div class="fgrid"><div class="field"><label>Descrição</label><input id="l_desc"></div><div class="field"><label>Contrato (opcional)</label><select id="l_con"><option value="">—</option>'+optC+'</select></div></div>',
       function(){var val=Number(v("l_val"));if(!(val>0)){toast("Informe o valor.","warn");return false;}
-        insert("lancamentos",{tipo:v("l_tipo"),valor:val,data:v("l_data")||today(),categoria:v("l_cat")||null,descricao:v("l_desc")||null}).then(function(r){if(r.error){toast("Erro: "+r.error.message,"danger");return;}reload("lancamentos").then(function(){closeModal();toast("Lançado.","ok");renderFinanceiro();});});return false;});
+        insert("lancamentos",{tipo:v("l_tipo"),valor:val,data:v("l_data")||today(),categoria:v("l_cat")||null,descricao:v("l_desc")||null,contrato_id:v("l_con")||null}).then(function(r){if(r.error){toast("Erro: "+r.error.message,"danger");return;}reload("lancamentos").then(function(){closeModal();toast("Lançado.","ok");renderFinanceiro();});});return false;});
   }
-  function delLanc(id){del("lancamentos",id).then(function(){reload("lancamentos").then(function(){toast("Excluído.","ok");renderFinanceiro();});});}
+  function delLanc(id){confirmModal("Excluir este lançamento?",function(){del("lancamentos",id).then(function(){reload("lancamentos").then(function(){toast("Excluído.","ok");renderFinanceiro();});});},"Excluir",true);}
 
   /* ================= CALENDÁRIO ================= */
   function renderCalendario(){
