@@ -7,15 +7,16 @@
 <meta name="theme-color" content="#2563EB">
 <link rel="icon" href="favicon-32.png" sizes="32x32">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Raleway:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
+  /* Vizio Consórcio — branding board: #2563EB azul · #FFFFFF · #0D0D0D preto · #2B2F36 grafite · #E6E8EB cinza claro */
   --blue:#2563EB;--blue-l:#3C94FC;--blue-d:#1D4ED8;
-  --bg:#0B0E16;--bg2:#0E121C;--surface:#141A26;--surface2:#1A2030;--border:#27304A;--border2:#1E2638;
-  --text:#E6EAF2;--head:#FFFFFF;--muted:#9AA6BE;--muted2:#7C879E;--soft:rgba(37,99,235,.16);
+  --bg:#0D0D0D;--bg2:#131316;--surface:#1A1D22;--surface2:#2B2F36;--border:#3A3F47;--border2:#24282E;
+  --text:#E6E8EB;--head:#FFFFFF;--muted:#9BA1AA;--muted2:#7B818A;--soft:rgba(37,99,235,.16);
   --ok:#34D77F;--ok-bg:rgba(22,163,74,.16);--ok-bd:#1F7A48;--warn:#F0A33C;--warn-bg:rgba(217,119,6,.16);
   --vio:#A78BFA;--vio-bg:rgba(124,58,237,.18);--vio-bd:#5B3CA6;--rose:#FB7185;--rose-bg:rgba(225,29,72,.14);
-  --font:'Inter',system-ui,sans-serif;--font-display:'Raleway','Inter',sans-serif;
+  --font:'Inter',system-ui,sans-serif;--font-display:'Inter',system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 *{scrollbar-width:none;-ms-overflow-style:none}
@@ -26,11 +27,13 @@ a{color:var(--blue-l);text-decoration:none}.hidden{display:none!important}.num{f
 .app{display:flex;min-height:100vh}
 @keyframes vzpulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(37,99,235,0))}50%{transform:scale(1.06);filter:drop-shadow(0 0 10px rgba(37,99,235,.5))}}
 .brand img{animation:vzpulse 2.8s ease-in-out infinite}
-.badge-cs{font-family:var(--font-display);font-weight:700;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--blue);padding:2px 7px;border-radius:5px}
+.badge-cs{font-family:var(--font);font-weight:500;font-size:.58rem;letter-spacing:.26em;text-indent:.26em;text-transform:uppercase;color:var(--blue);background:none;padding:0}
 aside{width:240px;flex:0 0 240px;background:var(--bg2);border-right:1px solid var(--border2);padding:18px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:auto}
 .brand{display:flex;align-items:center;gap:9px;padding:2px 6px 14px;border-bottom:1px solid var(--border2);margin-bottom:6px}
-.brand img{height:26px}.brand .wm{font-weight:800;letter-spacing:.16em;font-size:.95rem;color:#fff}
-.brand small{display:block;color:var(--muted2);font-size:.58rem;letter-spacing:.08em}
+.brand img{height:26px}.brand .wm{font-weight:400;letter-spacing:.26em;font-size:.95rem;color:#fff}
+/* lockup do board: VIZIO (Inter Regular) · CONSÓRCIO (Inter Medium, azul) */
+.brand small{display:block;font-weight:500;color:var(--blue);font-size:.56rem;letter-spacing:.24em;text-transform:uppercase;margin-top:2px}
+.brand small .mod{color:var(--muted2);font-weight:400}
 .orgname{font-size:.8rem;color:var(--muted);padding:6px 8px 10px}.orgname b{color:#D7DEEC}
 .navsec{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2);padding:12px 10px 4px;font-weight:700}
 nav.menu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:0;color:var(--muted);font:inherit;font-size:.88rem;font-weight:600;padding:9px 11px;border-radius:9px;cursor:pointer;transition:.12s}
@@ -110,7 +113,7 @@ tbody tr.clk{cursor:pointer}tbody tr.clk:hover{background:var(--surface2)}
 #login{position:fixed;inset:0;z-index:1000;background:radial-gradient(120% 90% at 85% -10%,#16224A,rgba(11,14,22,0) 55%),radial-gradient(90% 80% at 0% 110%,#1B1740,rgba(11,14,22,0) 50%),var(--bg);display:flex;align-items:center;justify-content:center;padding:22px}
 #login .box{width:100%;max-width:400px}#login .head{text-align:center;margin-bottom:20px}
 #login .logo{display:inline-flex;align-items:center;gap:10px;margin-bottom:14px}#login .logo img{height:34px;animation:vzpulse 2.8s ease-in-out infinite}
-#login .logo .wm{font-weight:800;letter-spacing:.2em;font-size:1.1rem;color:#fff}#login .logo small{display:block;color:var(--muted2);font-size:.58rem;letter-spacing:.12em}
+#login .logo .wm{font-weight:400;letter-spacing:.28em;font-size:1.1rem;color:#fff}#login .logo small{display:block;font-weight:500;color:var(--blue);font-size:.58rem;letter-spacing:.26em;text-transform:uppercase;margin-top:2px}#login .logo small .mod{color:var(--muted2);font-weight:400}
 #login h1{font-size:1.3rem;color:#fff}#login .head p{color:var(--muted);font-size:.88rem;margin-top:5px}
 #login .card-l{background:rgba(20,26,38,.86);border:1px solid var(--border);border-radius:15px;padding:22px;backdrop-filter:blur(8px)}
 #login label{display:block;font-size:.78rem;color:var(--muted);font-weight:600;margin-bottom:5px}#login .field{margin-bottom:12px}
@@ -129,7 +132,7 @@ tbody tr.clk{cursor:pointer}tbody tr.clk:hover{background:var(--surface2)}
 <div id="login">
   <div class="box">
     <div class="head">
-      <div class="logo"><img src="vizio-symbol-light.png" alt="VIZIO"><div><span class="wm">VIZIO</span><small>CONSÓRCIO · COCKPIT</small></div></div>
+      <div class="logo"><img src="vizio-symbol-light.png" alt="VIZIO"><div><span class="wm">VIZIO</span><small>Consórcio <span class="mod">· Cockpit</span></small></div></div>
       <h1>Cockpit da Empresa</h1>
       <p>Gestão completa: clientes, vendas, contratos e operação.</p>
     </div>
@@ -159,7 +162,7 @@ tbody tr.clk{cursor:pointer}tbody tr.clk:hover{background:var(--surface2)}
 
 <div class="app hidden" id="app">
   <aside>
-    <div class="brand"><img src="vizio-symbol-light.png" alt="VIZIO"><div><span class="wm">VIZIO</span><small>CONSÓRCIO · COCKPIT</small></div></div>
+    <div class="brand"><img src="vizio-symbol-light.png" alt="VIZIO"><div><span class="wm">VIZIO</span><small>Consórcio <span class="mod">· Cockpit</span></small></div></div>
     <div class="orgname"><b id="orgNome">—</b><br><span id="orgPlano" style="font-size:.7rem;color:var(--muted2)"></span></div>
     <div class="navsec">Comercial &amp; Cliente</div>
     <nav class="menu" id="menu1"></nav>
@@ -1086,7 +1089,7 @@ window.APP=(function(){
     document.getElementById("app").classList.add("hidden");
     document.getElementById("login").classList.remove("hidden");
     var nomeSug=(user.user_metadata&&(user.user_metadata.empresa||user.user_metadata.nome))||"";
-    box.innerHTML='<div class="head"><div class="logo"><img src="vizio-symbol-light.png" alt="VIZIO"><div><span class="wm">VIZIO</span><small>CONSÓRCIO · COCKPIT</small></div></div><h1>Vamos criar sua empresa</h1><p>Um passo rápido para montar seu cockpit.</p></div>'+
+    box.innerHTML='<div class="head"><div class="logo"><img src="vizio-symbol-light.png" alt="VIZIO"><div><span class="wm">VIZIO</span><small>Consórcio <span class="mod">· Cockpit</span></small></div></div><h1>Vamos criar sua empresa</h1><p>Um passo rápido para montar seu cockpit.</p></div>'+
       '<div class="card-l"><div class="field"><label>Nome da empresa</label><input id="obEmp" placeholder="Ex.: Elite Consórcios" value="'+esc(nomeSug)+'"></div><div class="err" id="obErr"></div><button class="enter" onclick="APP.criarOrg()">Criar empresa e entrar</button><div style="text-align:center;margin-top:9px"><button class="link" onclick="APP.logout()">Sair</button></div></div>';
     var el=document.getElementById("obEmp");if(el)el.focus();
     return Promise.resolve();
