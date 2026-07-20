@@ -575,7 +575,7 @@ window.VZC = (function(){
     SB.auth.getSession().then(function(s){
       if(s.data&&s.data.session){UID=s.data.session.user.id;loadAll().then(function(){return ensurePerfil(s.data.session.user);}).then(startApp).catch(function(){});}
     });
-    if("serviceWorker" in navigator){try{navigator.serviceWorker.register("sw.js");}catch(e){}}
+    /* SW registrado no bloco de push §14 (fim do arquivo) — lá ele também escuta 'updatefound'. */
   }
 
   return {boot:boot,login:login,signup:signup,forgot:forgot,showSignup:showSignup,logout:logout,go:go,
@@ -586,5 +586,77 @@ document.addEventListener("DOMContentLoaded",VZC.boot);
 if(document.readyState!=="loading")VZC.boot();
 </script>
 <script src="aura.js?v=3"></script>
+<script>
+/* VERSÃO DO APP — bumpar a CADA deploy. É por este número que o push compara. */
+window.APP_VERSION = '1.0.1';   /* §14.2: nunca const */
+
+/* PUSH DE ATUALIZAÇÃO — padrão VIZIO §14.
+   Publicar não é entregar: entregue é quando o código novo roda no navegador do cliente.
+   Sem guard de document.hidden de propósito — aba em segundo plano é o caso a pegar. */
+(function(){
+  var avisou=false, checando=false, reg=null;
+
+  function avisarNovaVersao(){
+    if(avisou) return; avisou=true;
+    var b=document.createElement('button');
+    b.type='button'; b.id='vzUpdate';
+    b.innerHTML='✨ Uma versão novinha do seu sistema está pronta. <b>Atualizar agora</b>';
+    b.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(8px);'
+      +'z-index:9999;display:inline-flex;align-items:center;gap:10px;white-space:nowrap;'
+      +'padding:12px 18px;border:none;border-radius:14px;cursor:pointer;font:inherit;font-size:.9rem;'
+      +'color:#fff;font-weight:600;'
+      /* identidade do Consórcio (tokens do :root deste arquivo) */
+      +'background:linear-gradient(135deg,var(--blue,#2563EB),var(--blue-d,#1D4ED8));'
+      +'box-shadow:0 12px 30px -10px rgba(0,0,0,.55);opacity:0;'
+      +'transition:opacity .35s,transform .35s;max-width:92vw';
+    b.onclick=function(){
+      b.textContent='Atualizando…'; b.disabled=true;
+      try{ if(reg&&reg.waiting) reg.waiting.postMessage({type:'PULAR_ESPERA'}); }catch(_){}
+      try{ sessionStorage.clear(); }catch(_){}
+      location.replace(location.pathname+'?v='+Date.now()+location.hash);
+    };
+    document.body.appendChild(b);
+    requestAnimationFrame(function(){ b.style.opacity='1'; b.style.transform='translateX(-50%) translateY(0)'; });
+  }
+
+  /* rota 1 — service worker (este sistema tem sw.js) */
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',function(){
+      navigator.serviceWorker.register('sw.js').then(function(r){
+        reg=r;
+        if(r.waiting&&navigator.serviceWorker.controller) avisarNovaVersao();
+        r.addEventListener('updatefound',function(){
+          var novo=r.installing; if(!novo) return;
+          novo.addEventListener('statechange',function(){
+            if(novo.state==='installed'&&navigator.serviceWorker.controller) avisarNovaVersao();
+          });
+        });
+      }).catch(function(){});
+    });
+  }
+
+  /* rota 2 — APP_VERSION por rede. Pega o deploy que mexeu SÓ no HTML
+     (nesse caso o sw.js não muda, o 'updatefound' não dispara e ninguém seria avisado). */
+  function checarVersao(){
+    if(checando||avisou) return; checando=true;
+    var base=location.href.replace(/[#?].*$/,'');
+    fetch(base+'?_v='+Date.now(),{cache:'no-store'})
+      .then(function(r){ return r.ok?r.text():null; })
+      .then(function(t){
+        if(!t) return;
+        var m=t.match(/APP_VERSION\s*=\s*'([^']+)'/);
+        if(m&&m[1]&&m[1]!==window.APP_VERSION) avisarNovaVersao();
+      })
+      .catch(function(){})
+      .then(function(){ checando=false; });
+  }
+  setTimeout(checarVersao,8000);
+  setInterval(checarVersao,10*60*1000);
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden){ checarVersao(); if(reg) reg.update().catch(function(){}); }
+  });
+  window.addEventListener('online',function(){ if(reg) reg.update().catch(function(){}); });
+})();
+</script>
 </body>
 </html>
