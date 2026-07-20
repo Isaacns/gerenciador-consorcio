@@ -588,7 +588,7 @@ if(document.readyState!=="loading")VZC.boot();
 <script src="aura.js?v=3"></script>
 <script>
 /* VERSÃO DO APP — bumpar a CADA deploy. É por este número que o push compara. */
-window.APP_VERSION = '1.0.1';   /* §14.2: nunca const */
+window.APP_VERSION = '1.0.2';   /* §14.2: nunca const */
 
 /* PUSH DE ATUALIZAÇÃO — padrão VIZIO §14.
    Publicar não é entregar: entregue é quando o código novo roda no navegador do cliente.
@@ -616,7 +616,12 @@ window.APP_VERSION = '1.0.1';   /* §14.2: nunca const */
       location.replace(location.pathname+'?v='+Date.now()+location.hash);
     };
     document.body.appendChild(b);
-    requestAnimationFrame(function(){ b.style.opacity='1'; b.style.transform='translateX(-50%) translateY(0)'; });
+    /* §3.6: requestAnimationFrame NÃO roda em aba de segundo plano — que é justamente o caso
+       que este push existe para cobrir. Revelar por DOIS caminhos (as duas atribuições são
+       idempotentes): rAF quando a aba está visível, setTimeout quando está oculta. */
+    var mostrar=function(){ b.style.opacity='1'; b.style.transform='translateX(-50%) translateY(0)'; };
+    requestAnimationFrame(mostrar);
+    setTimeout(mostrar,60);
   }
 
   /* rota 1 — service worker (este sistema tem sw.js) */
