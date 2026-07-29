@@ -1,12 +1,12 @@
 {
-  "name": "Gerenciador de Consórcio — VIZIO",
+  "name": "Vizio Consórcio",
   "short_name": "Consórcio",
   "description": "Acompanhe suas cotas de consórcio: parcelas, reajustes, contemplação e lances.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0B0E16",
+  "background_color": "#0D0D0D",
   "theme_color": "#2563EB",
   "lang": "pt-BR",
   "icons": [

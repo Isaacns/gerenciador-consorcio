@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastre-se · Vizio Consórcio</title>
+<meta name="theme-color" content="#2563EB">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Consórcio">
+<link rel="apple-touch-icon" href="favicon-180.png">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Vizio Consórcio — branding board: #2563EB azul · #FFFFFF · #0D0D0D preto · #2B2F36 grafite · #E6E8EB cinza claro */
+  --blue:#2563EB;--blue-l:#3C94FC;--blue-d:#1D4ED8;
+  --bg:#0D0D0D;--bg2:#131316;--surface:#1A1D22;--surface2:#2B2F36;--border:#3A3F47;--border2:#24282E;
+  --text:#E6E8EB;--head:#FFFFFF;--muted:#9BA1AA;--muted2:#7B818A;--soft:rgba(37,99,235,.16);
+  --ok:#34D77F;--ok-bg:rgba(22,163,74,.16);--ok-bd:#1F7A48;--warn:#F0A33C;--warn-bg:rgba(217,119,6,.16);--danger:#F87171;
+  --font:'Inter',system-ui,sans-serif;--font-display:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+*{scrollbar-width:none;-ms-overflow-style:none}
+*::-webkit-scrollbar{width:0;height:0;display:none}
+body{font-family:var(--font);background:
+  radial-gradient(120% 80% at 85% -10%,#16224A 0%,rgba(11,14,22,0) 55%),
+  radial-gradient(90% 70% at 0% 110%,#1B1740 0%,rgba(11,14,22,0) 50%),var(--bg);
+  color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.55;min-height:100vh}
+h1,h2,h3,.wm{font-family:var(--font-display);letter-spacing:-.01em}
+.wrap{max-width:620px;margin:0 auto;padding:26px 18px 60px}
+@keyframes vzpulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(37,99,235,0))}50%{transform:scale(1.06);filter:drop-shadow(0 0 10px rgba(37,99,235,.5))}}
+@keyframes vzrise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card,.celebrate{animation:vzrise .5s ease both}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:9px}.brand img{height:26px;animation:vzpulse 2.8s ease-in-out infinite}
+.brand .wm{font-weight:400;letter-spacing:.26em;font-size:.95rem;color:#fff}
+.brand small{display:block;font-weight:500;color:var(--blue);font-size:.56rem;letter-spacing:.24em;text-transform:uppercase;margin-top:2px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px}
+h1.title{font-size:1.5rem;color:#fff;margin:2px 0 6px}
+.sub{color:var(--muted);font-size:.94rem;margin-bottom:20px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.78rem;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:.01em}
+.field label .req{color:var(--blue-l)}
+.field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:11px;
+  padding:12px 14px;color:var(--head);font-family:var(--font);font-size:.95rem;transition:border-color .12s,box-shadow .12s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--soft)}
+.field textarea{min-height:82px;resize:vertical}
+.field select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%239BA1AA' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hp{position:absolute!important;left:-9999px!important;top:-9999px!important;width:1px;height:1px;opacity:0;overflow:hidden}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--blue);color:#fff;font-weight:700;
+  font-size:1rem;border:1px solid var(--blue-d);border-radius:12px;padding:14px 18px;cursor:pointer;margin-top:6px;
+  transition:transform .12s,background .12s,opacity .12s;font-family:var(--font)}
+.btn:hover{background:var(--blue-d);transform:translateY(-1px)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.msg{font-size:.86rem;border-radius:10px;padding:10px 13px;margin-top:12px;display:none}
+.msg.err{display:block;background:rgba(248,113,113,.13);color:#FCA5A5;border:1px solid rgba(248,113,113,.3)}
+.priv{font-size:.76rem;color:var(--muted2);margin-top:14px;text-align:center}
+.celebrate{background:linear-gradient(160% 140% at 80% 0%,#1E2A12 0%,#141A26 55%);border:1px solid var(--ok-bd);border-radius:16px;
+  padding:34px 26px;text-align:center}
+.celebrate .big{font-size:3rem;animation:vzpulse 2.4s ease-in-out infinite}
+.celebrate h2{font-size:1.55rem;color:#fff;margin:10px 0 8px}
+.celebrate p{color:#D7DEEC;font-size:.98rem;max-width:440px;margin:0 auto}
+.foot{text-align:center;color:var(--muted2);font-size:.78rem;margin-top:24px}
+.err-full{text-align:center;color:var(--muted);padding:60px 20px}.err-full b{color:#fff}
+@media(max-width:520px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><img src="vizio-symbol-light.png" alt="VIZIO"><div><span class="wm">VIZIO</span><small>CONSÓRCIO</small></div></div>
+  </div>
+  <div id="content"><div class="err-full">Carregando…</div></div>
+  <div class="foot" id="foot"></div>
+</div>
+
+<script src="dados.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  "use strict";
+  var CFG=(typeof DADOS!=="undefined"&&DADOS._cfg)?DADOS._cfg:{};
+  var EMPRESA="nossa equipe"; // identidade da instância — nunca vem do banco (sem enumeração)
+  function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+  function q(name){var m=new RegExp("[?&]"+name+"=([^&]+)").exec(location.search);return m?decodeURIComponent(m[1]):"";}
+  function el(id){return document.getElementById(id);}
+  function errFull(msg){el("content").innerHTML='<div class="err-full"><div style="font-size:2rem">🔒</div><b>'+esc(msg)+'</b><br><span style="font-size:.88rem">Confira o link com a empresa que o enviou.</span></div>';}
+
+  el("foot").innerHTML='powered by <b style="color:#9AA6BE">Vizio Consórcio</b> · um produto INPERSON';
+
+  var token=q("t")||CFG.cadastroToken||"";
+  if(!token){errFull("Link de cadastro inválido.");return;}
+  if(!CFG.supabaseUrl||!window.supabase){errFull("Serviço indisponível no momento.");return;}
+  var SB=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseKey);
+
+  function form(){
+    el("content").innerHTML=
+      '<div class="card">'+
+        '<h1 class="title">Vamos começar seu plano ✨</h1>'+
+        '<div class="sub">Preencha seus dados e '+esc(EMPRESA)+' entra em contato para apresentar as melhores condições de consórcio para você. Leva menos de um minuto.</div>'+
+        '<form id="f" autocomplete="on" novalidate>'+
+          '<div class="field"><label>Nome completo <span class="req">*</span></label><input id="i_nome" name="name" type="text" maxlength="120" placeholder="Como podemos te chamar?"></div>'+
+          '<div class="grid2">'+
+            '<div class="field"><label>WhatsApp</label><input id="i_tel" name="tel" type="tel" inputmode="tel" maxlength="40" placeholder="(00) 00000-0000"></div>'+
+            '<div class="field"><label>E-mail</label><input id="i_email" name="email" type="email" maxlength="160" placeholder="voce@email.com"></div>'+
+          '</div>'+
+          '<div class="grid2">'+
+            '<div class="field"><label>Cidade</label><input id="i_cidade" name="city" type="text" maxlength="80" placeholder="Sua cidade"></div>'+
+            '<div class="field"><label>Tenho interesse em</label><select id="i_interesse">'+
+              '<option value="">Selecione…</option>'+
+              '<option value="Imóvel">Imóvel</option>'+
+              '<option value="Automóvel">Automóvel</option>'+
+              '<option value="Ainda não sei">Ainda não sei</option>'+
+            '</select></div>'+
+          '</div>'+
+          '<div class="field"><label>Faixa de crédito desejada</label><select id="i_faixa">'+
+            '<option value="">Selecione…</option>'+
+            '<option value="Até R$ 50 mil">Até R$ 50 mil</option>'+
+            '<option value="R$ 50 mil a R$ 100 mil">R$ 50 mil a R$ 100 mil</option>'+
+            '<option value="R$ 100 mil a R$ 200 mil">R$ 100 mil a R$ 200 mil</option>'+
+            '<option value="R$ 200 mil a R$ 400 mil">R$ 200 mil a R$ 400 mil</option>'+
+            '<option value="Acima de R$ 400 mil">Acima de R$ 400 mil</option>'+
+          '</select></div>'+
+          '<div class="field"><label>Observação (opcional)</label><textarea id="i_obs" maxlength="800" placeholder="Conte um pouco do seu objetivo…"></textarea></div>'+
+          // honeypot anti-bot — invisível para humanos
+          '<div class="hp" aria-hidden="true"><label>Não preencha este campo</label><input id="i_hp" name="empresa_site" type="text" tabindex="-1" autocomplete="off"></div>'+
+          '<button class="btn" id="submit" type="submit">Quero saber mais →</button>'+
+          '<div class="msg" id="msg"></div>'+
+        '</form>'+
+        '<div class="priv">Seus dados são usados apenas para '+esc(EMPRESA)+' entrar em contato sobre seu consórcio.</div>'+
+      '</div>';
+    el("f").addEventListener("submit",submit);
+  }
+
+  function val(id){return (el(id)&&el(id).value||"").trim();}
+  function showErr(m){var b=el("msg");b.className="msg err";b.textContent=m;}
+
+  function submit(ev){
+    ev.preventDefault();
+    var nome=val("i_nome"), tel=val("i_tel"), email=val("i_email");
+    if(!nome){showErr("Por favor, informe seu nome.");el("i_nome").focus();return;}
+    if(!tel&&!email){showErr("Informe ao menos um contato: WhatsApp ou e-mail.");el("i_tel").focus();return;}
+    var btn=el("submit"); btn.disabled=true; btn.textContent="Enviando…";
+    el("msg").className="msg";
+    SB.rpc("cliente_autocadastro",{
+      p_token:token, p_nome:nome, p_contato:tel||null, p_email:email||null,
+      p_cidade:val("i_cidade")||null, p_interesse:val("i_interesse")||null,
+      p_faixa:val("i_faixa")||null, p_obs:val("i_obs")||null, p_hp:val("i_hp")||null
+    }).then(function(r){
+      if(r.error||!r.data||r.data.ok!==true){
+        btn.disabled=false; btn.textContent="Quero saber mais →";
+        showErr((r.data&&r.data.error)||"Não foi possível enviar agora. Tente novamente em instantes.");
+        return;
+      }
+      sucesso(nome);
+    }).catch(function(){
+      btn.disabled=false; btn.textContent="Quero saber mais →";
+      showErr("Não foi possível enviar agora. Verifique sua conexão e tente novamente.");
+    });
+  }
+
+  function sucesso(nome){
+    var primeiro=String(nome||"").trim().split(/\s+/)[0]||"";
+    el("content").innerHTML=
+      '<div class="celebrate"><div class="big">🎉</div>'+
+        '<h2>Recebemos seu cadastro'+(primeiro?(", "+esc(primeiro)):"")+'!</h2>'+
+        '<p>Prontinho! Seus dados chegaram para '+esc(EMPRESA)+'. Em breve entramos em contato para apresentar as melhores condições do seu consórcio. Fique de olho no seu WhatsApp. 💙</p>'+
+      '</div>';
+    window.scrollTo(0,0);
+  }
+
+  form();
+})();
+</script>
+<script src="aura.js?v=3"></script>
+</body>
+</html>

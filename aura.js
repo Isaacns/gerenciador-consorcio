@@ -1,8 +1,10 @@
 /* =========================================================================
    MODO AURA — VIZIO · v3 "LUZ DA MARCA"
    Traduz o vocabulário luminoso do símbolo oficial (cubo de vidro) para a
-   página inteira: feixes laterais, poça de luz no chão, brilho que respira,
+   página inteira: poça de luz no chão, brilho que respira,
    poeira luminosa e parallax pelo cursor.
+   (Os feixes laterais / "linha dourada" — .vz-ray — foram REMOVIDOS e
+    excluídos como opção de implementação.)
 
    Sempre ativo (sem botão). Respeita prefers-reduced-motion: mantém a luz,
    remove o movimento. Auto-contido: window.AURA.
@@ -58,18 +60,9 @@
     '@keyframes vzFloor{0%,100%{opacity:.55;transform:translateX(-50%) scaleY(1)}',
     '50%{opacity:.95;transform:translateX(-50%) scaleY(1.12)}}',
 
-    /* feixes laterais — os dois raios que cortam a arte */
-    '.vz-ray{position:absolute;top:44%;height:2px;pointer-events:none;mix-blend-mode:screen;',
-    'filter:blur(1.4px);opacity:0}',
-    '.vz-ray i{display:block;height:100%;border-radius:99px}',
-    '.vz-ray.l{left:-6%;width:52%;transform:rotate(-3.2deg);animation:vzRayL 6s ease-in-out infinite}',
-    '.vz-ray.r{right:-6%;width:52%;transform:rotate(3.2deg);animation:vzRayR 6s ease-in-out infinite .9s}',
-    '.vz-ray.l i{background:linear-gradient(90deg,transparent,rgba(' + R + ',.55) 62%,rgba(' + RL + ',.95))}',
-    '.vz-ray.r i{background:linear-gradient(270deg,transparent,rgba(' + R + ',.55) 62%,rgba(' + RL + ',.95))}',
-    '@keyframes vzRayL{0%,100%{opacity:.18;transform:rotate(-3.2deg) translateX(-2%)}',
-    '50%{opacity:.85;transform:rotate(-3.2deg) translateX(0)}}',
-    '@keyframes vzRayR{0%,100%{opacity:.18;transform:rotate(3.2deg) translateX(2%)}',
-    '50%{opacity:.85;transform:rotate(3.2deg) translateX(0)}}',
+    /* [REMOVIDO] .vz-ray — os feixes laterais (a "linha dourada" quando o acento
+       é ouro) foram removidos do AURA e EXCLUÍDOS como opção de implementação.
+       Não reintroduzir: o vocabulário luminoso segue com glow, floor e parts. */
 
     /* poeira luminosa */
     '.vz-parts{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:.85}',
@@ -87,8 +80,8 @@
 
     /* sem movimento: a luz fica, a animação não */
     '@media (prefers-reduced-motion: reduce){',
-    '.vz-glow,.vz-floor,.vz-ray{animation:none!important}',
-    '.vz-ray{opacity:.5}.vz-afix{transition:none}}',
+    '.vz-glow,.vz-floor{animation:none!important}',
+    '.vz-afix{transition:none}}',
 
     '@media print{.vz-afix{display:none!important}}'
   ].join('');
@@ -185,8 +178,6 @@
 
     afix = el('vz-afix');
     afix.appendChild(el('vz-glow'));
-    afix.appendChild(el('vz-ray l', '<i></i>'));
-    afix.appendChild(el('vz-ray r', '<i></i>'));
     afix.appendChild(el('vz-floor'));
 
     var canvas = document.createElement('canvas');

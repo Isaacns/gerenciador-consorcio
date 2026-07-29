@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gerenciador de Consórcio · Vizio Consórcio</title>
 <meta name="theme-color" content="#2563EB">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Consórcio">
 <link rel="manifest" href="manifest.json">
@@ -113,6 +115,11 @@ tbody tr.clk{cursor:pointer;transition:.12s}tbody tr.clk:hover{background:var(--
 .field{margin-bottom:15px}
 .field label{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:6px}
 .field select,.field input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:#fff;font:inherit;font-size:.92rem}
+/* toggle 👁 exibir/ocultar senha — reutilizável em qualquer campo */
+.pw{position:relative;display:block}
+.pw>input{width:100%;padding-right:42px}
+.pw>.eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;cursor:pointer;font-size:1rem;line-height:1;padding:4px 7px;color:var(--muted);opacity:.85;z-index:2}
+.pw>.eye:hover{opacity:1}
 .field input:focus,.field select:focus{outline:0;border-color:var(--blue-l)}
 .seg{display:flex;gap:8px}.seg label{flex:1;cursor:pointer;border:1px solid var(--border);border-radius:10px;padding:11px;text-align:center;font-size:.86rem;font-weight:600;color:var(--muted)}
 .seg input{display:none}.seg label:has(input:checked){border-color:var(--blue);background:var(--soft);color:#fff}
@@ -172,7 +179,7 @@ tbody tr.clk{cursor:pointer;transition:.12s}tbody tr.clk:hover{background:var(--
       <div id="viewLogin">
         <form onsubmit="return VZC.login(event)">
           <div class="field"><label>E-mail</label><input type="email" id="lgEmail" placeholder="voce@empresa.com.br" autocomplete="username"></div>
-          <div class="field"><label>Senha</label><input type="password" id="lgPass" placeholder="••••••••" autocomplete="current-password"></div>
+          <div class="field"><label>Senha</label><div class="pw"><input type="password" id="lgPass" placeholder="••••••••" autocomplete="current-password"><button type="button" class="eye" onclick="VZC.togglePw('lgPass',this)" aria-label="Mostrar senha">👁</button></div></div>
           <div class="err" id="lgErr"></div>
           <button class="enter" type="submit">Entrar</button>
         </form>
@@ -184,7 +191,7 @@ tbody tr.clk{cursor:pointer;transition:.12s}tbody tr.clk:hover{background:var(--
         <div class="field"><label>Seu nome</label><input id="suNome" autocomplete="name"></div>
         <div class="field"><label>Perfil</label><select id="suPapel"><option value="pessoal">Pessoal (minhas cotas)</option><option value="profissional">Profissional (carteira de clientes)</option></select></div>
         <div class="field"><label>E-mail</label><input type="email" id="suEmail" autocomplete="email"></div>
-        <div class="field"><label>Senha (mín. 6)</label><input type="password" id="suPass" autocomplete="new-password"></div>
+        <div class="field"><label>Senha (mín. 6)</label><div class="pw"><input type="password" id="suPass" autocomplete="new-password"><button type="button" class="eye" onclick="VZC.togglePw('suPass',this)" aria-label="Mostrar senha">👁</button></div></div>
         <label style="display:flex;gap:8px;align-items:flex-start;font-size:.78rem;color:var(--muted);margin:2px 0 10px"><input type="checkbox" id="suConsent" style="width:auto;margin-top:3px"><span>Li e aceito os <a href="legal.html" target="_blank">Termos e a Política de Privacidade</a>.</span></label>
         <div class="err" id="suErr"></div>
         <button class="enter" type="submit">Criar minha conta</button>
@@ -562,6 +569,7 @@ window.VZC = (function(){
   function forgot(){var em=prompt("Digite seu e-mail para receber o link de recuperação:",num("lgEmail")||"");if(em){SB.auth.resetPasswordForEmail(em,{redirectTo:location.href.split("#")[0]}).then(function(r){alert(r.error?("Erro: "+r.error.message):("Enviamos um link para "+em+"."));});}}
   function showSignup(on){document.getElementById("viewLogin").classList.toggle("hidden",on);document.getElementById("viewSignup").classList.toggle("hidden",!on);}
   function logout(){SB.auth.signOut().finally(function(){location.reload();});}
+  function togglePw(id,btn){var el=document.getElementById(id);if(!el)return;var show=el.type==="password";el.type=show?"text":"password";if(btn){btn.textContent=show?"🙈":"👁";btn.setAttribute("aria-label",show?"Ocultar senha":"Mostrar senha");}}
 
   /* ---------- boot ---------- */
   function boot(){
@@ -578,7 +586,7 @@ window.VZC = (function(){
     /* SW registrado no bloco de push §14 (fim do arquivo) — lá ele também escuta 'updatefound'. */
   }
 
-  return {boot:boot,login:login,signup:signup,forgot:forgot,showSignup:showSignup,logout:logout,go:go,
+  return {boot:boot,login:login,signup:signup,forgot:forgot,showSignup:showSignup,logout:logout,togglePw:togglePw,go:go,
     abrir:abrir,novaCota:novaCota,editCota:editCota,delCota:delCota,saveCota:saveCota,closeModal:closeModal,
     togglePago:togglePago,simular:simular,gerarPDF:gerarPDF};
 })();
@@ -588,7 +596,7 @@ if(document.readyState!=="loading")VZC.boot();
 <script src="aura.js?v=3"></script>
 <script>
 /* VERSÃO DO APP — bumpar a CADA deploy. É por este número que o push compara. */
-window.APP_VERSION = '1.0.2';   /* §14.2: nunca const */
+window.APP_VERSION = '1.0.10';   /* §14.2: nunca const */
 
 /* PUSH DE ATUALIZAÇÃO — padrão VIZIO §14.
    Publicar não é entregar: entregue é quando o código novo roda no navegador do cliente.
