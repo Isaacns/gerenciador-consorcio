@@ -1351,7 +1351,7 @@ window.APP=(function(){
     var token=(c._token)||(Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)).slice(0,24);
     SB.from("co_portal_links").upsert({token:token,org_id:S.org.id,contrato_id:id,ativo:true},{onConflict:"token"}).then(function(){
       c._token=token;
-      var url=location.origin+location.pathname.replace(/cockpit\.html$/,"")+"portal.html?t="+token;
+      var url=location.origin+location.pathname.replace(/[^/]*$/,"")+"portal.html?t="+token;
       modal("Link de acompanhamento do cliente",
         '<p style="color:var(--muted);font-size:.86rem;margin-bottom:10px">Envie este link para <b style="color:#fff">'+esc(clienteNome(c.cliente_id))+'</b>. Ele acompanha o processo em tempo real e recebe o aviso de contemplação com uma mensagem de apoio.</p>'+
         '<div class="field"><label>Link</label><input id="pl_url" value="'+esc(url)+'" readonly onclick="this.select()"></div>'+
@@ -1365,7 +1365,7 @@ window.APP=(function(){
   function cadastroLink(){
     var org=S.org||{};
     function abrir(tok){
-      var url=location.origin+location.pathname.replace(/cockpit\.html$/,"")+"cadastro.html?t="+tok;
+      var url=location.origin+location.pathname.replace(/[^/]*$/,"")+"cadastro.html?t="+tok;
       var wamsg="Olá! Quer conquistar seu imóvel ou automóvel por consórcio? Faça seu cadastro rápido aqui e a gente te apresenta as melhores condições: "+url;
       var wa="https://wa.me/?text="+encodeURIComponent(wamsg);
       modal("Link de cadastro de clientes",
@@ -2312,7 +2312,7 @@ if(document.readyState!=="loading")APP.boot();
 <script src="aura.js?v=3"></script>
 <script>
 /* VERSÃO DO APP — bumpar a CADA deploy. É por este número que o push compara. */
-window.APP_VERSION = '1.0.12';   /* §14.2: nunca const */
+window.APP_VERSION = '1.0.13';   /* §14.2: nunca const */
 
 /* PUSH DE ATUALIZAÇÃO — padrão VIZIO §14.
    Publicar não é entregar: entregue é quando o código novo roda no navegador do cliente.
