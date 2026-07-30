@@ -2,7 +2,7 @@
   "name": "Vizio Consórcio",
   "short_name": "Consórcio",
   "description": "Acompanhe suas cotas de consórcio: parcelas, reajustes, contemplação e lances.",
-  "start_url": "./index.html",
+  "start_url": "./cockpit.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
